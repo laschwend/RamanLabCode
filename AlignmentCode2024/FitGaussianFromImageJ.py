@@ -20,7 +20,7 @@ def gaussian(x, amplitude, mean, stddev, offset):
 
 #the arrays with the data names
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/AligmentProject2024Code/Directionality Tables/"
-pathName = "C:/Users/laSch/Desktop/Raman Lab/AligmentProject2024Code/Directionality Tables Human/"
+pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanLabCode/AlignmentCode2024/Directionality Tables Human/"
 
 #sizeNames = ["25", "125", "250", "unstamped", "flat"]
 sizeNames = ["12pt5", "62pt5", "125", "unstamped", "flat"]
@@ -29,6 +29,8 @@ repNames = [1,2,3];
 
 locationNames = ["R", "L", "center", "top", "bottom"]
 
+#note, need to already have this csv made in excel, or write 
+#code to make a new .csv file
 saveName = "Summary_Table_Human.csv"
 
 saveFileN = pathName + saveName
@@ -40,8 +42,11 @@ row_counter = 1  #change to add at later rows
 for size in sizeNames:
     for rep in repNames:
         for loc in locationNames:
-            fileName = pathName + size+"_rep" +str(rep) + "_10x_" + loc + "_7.0-10.0sectable"
             
+            #get the file name
+            fileName = pathName + size+"_rep" + str(rep) + "_10x_" + loc + "_7.0-10.0sectable"
+            
+            #this is from how I saved the files, if you change the imageJ script, you could drop a .csv
             csvFileName = fileName+".csv.csv"
             
             #open the file w/ pandas (note, imagej encodes csvs a little weird)
@@ -51,6 +56,9 @@ for size in sizeNames:
             x = tabl["Direction (°)"]
             y = tabl["frame_0210"]
             
+            #if you want to fit different gaussian peeks, might want to play with these numbers
+            #[amplitude, mean location, std, y offset], change everything besides mean location 
+            #as needed if you don't find reasonable fits
             init_guess = [.05,x[np.argmax(y)],20,.001];
             
             params, covariance = curve_fit(gaussian, x,y,p0=init_guess, bounds = (0,np.inf))
@@ -66,7 +74,7 @@ for size in sizeNames:
             plt.legend()
             plt.xlabel('X')
             plt.ylabel('Y')
-            plt.title('Gaussian Fit to Data' + size +" "+str(rep)+" "+loc)
+            plt.title('Gaussian Fit to Data ' + size +" "+str(rep)+" "+loc)
             plt.show()
             
             

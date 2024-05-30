@@ -13,7 +13,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
 
-#Select which dataset to run through
+#Select which dataset to run through, can add more options or remove options
 dataSett = 2.0; #1 = C2C12, #2 = Human
 
 if dataSett == 1.0:
