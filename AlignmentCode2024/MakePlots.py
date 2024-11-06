@@ -14,16 +14,21 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 #Select which dataset to run through, can add more options or remove options
-dataSett = 2.0; #1 = C2C12, #2 = Human
+dataSett = 3.0; #1 = C2C12, #2 = Human
 
 if dataSett == 1.0:
      pathName = "C:/Users/laSch/Desktop/Raman Lab/AligmentProject2024Code/Directionality Tables/"
      saveName = "Summary_Data.csv"
      labelName = "C2C12"
+elif dataSett == 3.0:
+    pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables C2C12_2/"
+    saveName = "Summary_Tables.csv"
+    labelName = "C2C12 Round 2"
 else:
     pathName = "C:/Users/laSch/Desktop/Raman Lab/AligmentProject2024Code/Directionality Tables Human/"
     saveName = "Summary_Table_Human.csv"
-    labelName = "Human"     
+    labelName = "Human"   
+    
         
         
 
