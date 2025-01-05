@@ -4,7 +4,7 @@
 # X and Y labels will not be plotted by default. Change these arguments according to your preference.
 
 # csv file or Microsoft Excel file containing data in tidy data format. Include file extension in the name
-filename: Violin_Human_Angles.csv
+filename: Violin_Cook_Revision.csv
 
 # tidy or untidy format. Refer to documentation for more information
 data_format: tidy

@@ -22,14 +22,42 @@ def gaussian(x, amplitude, mean, stddev, offset):
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/AligmentProject2024Code/Directionality Tables/"
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanLabCode/AlignmentCode2024/Directionality Tables Human/"
 pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables Human_2/"
+pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/C2C12 4x/Directionality_TablesM/"
+pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/Cook 4x/Directionality_TablesH/"
+
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables C2C12_2/"
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables Human_3/"
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables C2C12_3/"
 #sizeNames = ["25", "125", "250", "unstamped", "flat"]
-sizeNames = ["12pt5", "25", "62pt5", "125", "unstamped", "flat"]
-sizeVals = ["12.5", "25", "62.5", "125", "flat", "unstamped"]; 
+sizeNames = ["12pt5", "25", "125", "unstamped", "flat"]
+sizeVals = ["12.5", "25", "125", "flat", "unstamped"]; 
 
+#for First Pass
 repNames = [1,2,3]; 
+
+#for Revisions
+C2C12Bool = 0
+
+if C2C12Bool:
+    #C2C12 Dictionary
+    replicateDictionary = {
+                "12pt5": [1,2,3,5,6],
+                "25": [2, 3,4,5], 
+                "125": [1,2,4,5],
+                "unstamped": [1,2,3,4,5,6,7,8], 
+                "flat": [1,2,3,4,5,6,7,8]
+        
+        }
+else:
+    #Human Dictionary
+    replicateDictionary = {
+                "12pt5": [1,2,4,6,7,8],
+                "25": [1,2,5,6,7,9], 
+                "125": [1,2,3,5],
+                "unstamped": [1,2,3,4,5,6,7,8], 
+                "flat": [1,2,3,4,5,6]
+        
+        }
 
 locationNames = [""]#["R", "L", "center", "top", "bottom"]
 
@@ -44,15 +72,21 @@ row_counter = 0  #change to add at later rows
 
 #loop through all the conditions
 for size in sizeNames:
+    
+    #
+    repNames = replicateDictionary[size]
+    
     for rep in repNames:
         for loc in locationNames:
             
             #get the file name
-            #_stitched_stack
-            fileName = pathName + size+"_rep" + str(rep) + "4x_fullWellFiltered_table"
-            picName = "C:/Users/laSch/Dropbox(MIT)/RamanLab/LauraSchwendeman/20240...dpics/otherreplicates/" + size+"_rep" + str(rep) + "_4x" + loc + "-MaxIP"
-            picName = "C:/Users/laSch/Dropbox(MIT)/RamanLab/LauraSchwendeman/20240...itchedpics/otherreplicates/12pt5_rep14x_fullWellFiltered"
-            
+            if C2C12Bool: 
+                fileName = pathName + "C2C12_4x_"+ size+"_rep" + str(rep) + "_fullWellFiltered_table"
+            else: 
+                fileName = pathName + "Cook_4x_"+ size+"_rep" + str(rep) + "_fullWellFiltered_table"
+            # picName = "C:/Users/laSch/Dropbox(MIT)/RamanLab/LauraSchwendeman/20240...dpics/otherreplicates/" + size+"_rep" + str(rep) + "_4x" + loc + "-MaxIP"
+            # picName = "C:/Users/laSch/Dropbox(MIT)/RamanLab/LauraSchwendeman/20240...itchedpics/otherreplicates/12pt5_rep14x_fullWellFiltered"
+            # picName = "C:/Users/SonikaKohli/MITDropbox/RamanLab/SonikaKohli/Data...ataanalysis/C2C124x/C2C12_4x_" +size + "_rep" +str(rep) +"_fullWellFiltered"
             #this is from how I saved the files, if you change the imageJ script, you could drop a .csv
             csvFileName = fileName+".csv.csv"
             
