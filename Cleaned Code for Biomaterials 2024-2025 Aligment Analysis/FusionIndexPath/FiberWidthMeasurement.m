@@ -7,18 +7,33 @@
 
 %dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240530 alignment 6 good IF\40x pancakes\";
 dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240603 Alignment Experiment 7 - human tc twitch\40x pancakes\";
+%Revision Code
+%dirLocation = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\C2C12 40x\"
+dirLocation = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\Cook 40x\"
 
-conditions = ["12pt5", "25", "62.5", "125", "flat", "unstamped"];
-conditionNumbersKey = [1, 2, 3, 4, 5, 6];%for tagging the conditions in the structure order and not repeating 1 - 12.5, 2- 25, 3- 62.5, 4-125, 5-flat, 6-unstamped
-replicates = 1:3; 
+conditions = ["12pt5", "25", "125", "flat", "unstamped"];
+conditionNumbersKey = [1, 2, 3, 4, 5]; %for tagging the conditions in the structure order and not repeating 1 - 12.5, 2- 25, 3- 62.5, 4-125, 5-flat, 6-unstamped
 
-conditionNumbersKey = repelem(conditionNumbersKey, length(replicates));
+C2C12 = 0; 
+
+if C2C12
+    replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [7,5,5,8,8]);
+else
+    replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [8,9,5,6,8]);
+end
+
+
+%conditionNumbersKey = repelem(conditionNumbersKey, length(replicates));
 
 %variables for storing info
-load('fiberdataH.mat');
+load('fiberdataH2_1.mat');
 
-counterVar = 1; 
+counterVar = 1;
 for cIndx = conditions
+
+       conditionNum = conditionNumbersKey(counterVar);
+       replicates = 1:replicateDict(cIndx);
+
     for rIndx = replicates
         ImageData = FiberDataStruct{conditionNumbersKey(counterVar), rIndx};
 
@@ -46,20 +61,29 @@ for cIndx = conditions
     
         ImageData.fiberWidths = FiberWidthLog;
 
-        FiberDataStruct{conditionNumbersKey(counterVar), rIndx} = ImageData; 
-        counterVar = counterVar +1;
+        FiberDataStruct{conditionNum , rIndx} = ImageData; 
+       
     end
+
+     counterVar = counterVar +1; 
+
 end
 
 
 %% save the updated fiberDataStructure
 
-save('fiberdataH.mat', 'FiberDataStruct');
+save('fiberdataH2_1 - Copy.mat', 'FiberDataStruct');
 
 %% functions 
 % this is the best way I found to get width measurements
 function [fiberWidths] = altWidthMeasure(fiberImage)
     
+
+    %filter fiber first added 1/8/2025
+    fiberImage = imfill(fiberImage, "holes");
+    se = strel('disk', 7);
+    fiberImage = imopen(fiberImage, se);
+
     % Step 2: Skeletonize the object
     skeletonImage = bwskel(fiberImage);
 
@@ -92,6 +116,20 @@ function [fiberWidths] = altWidthMeasure(fiberImage)
     subplot(2,3,5);
     imshow(fiberImage);
     title('original image')
+
+    %  figure(3);
+    % imshow(edtImage*2, []);
+    % 
+    % [redSkelx, redSkely] = find(skeletonImage >0); 
+    % 
+    % hold on
+    % plot(redSkely, redSkelx, '.r', "MarkerSize", 3);
+    % 
+    % boundaries = bwboundaries(fiberImage);
+    % x = boundaries{1}(:, 2);
+    % y = boundaries{1}(:, 1);
+    % 
+    % plot(x, y, '.y', "MarkerSize", 3)
 
 
     

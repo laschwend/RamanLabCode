@@ -1,6 +1,7 @@
 %scratch plotting code for getting supplementary plots
 close all; clear; clc;
-load("fiberdata.mat");
+load('C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\C2C12 40x\fiberdataM2_1.mat')
+%load("");
 
 condition = 1; 
 rep = 1; 
@@ -28,7 +29,7 @@ labels2Show = labelsF>0;
 
 imshow(labeloverlay(label2rgb(labels2Show, fiberMap, 'w'),markedNucleiIm)); %label2rgb(markedNucleiIm,nucleiMap)));
 makeScaleBar(1/4.6341, 100, markedNucleiIm, '\mum', 'k')
-%% getting a nice representation of fiber Width measures
+% getting a nice representation of fiber Width measures
 fiberNum = 17; 
 
  fiberPix = labelsF == fiberNum; 
@@ -106,6 +107,20 @@ mode(circularity)
 % this is the best way I found to get width measurements
 function [fiberWidths] = altWidthMeasure(fiberImage)
     
+    figure; imshow(fiberImage)
+    %filter image
+    fiberImage = imfill(fiberImage, "holes");
+    se = strel('disk', 7);
+    fiberImage = imopen(fiberImage, se);
+
+    % N = 1; 
+    % kernel = ones(N, N, N) / N^3;
+    % fiberImage = convn(double(fiberImage), kernel, 'same');
+    % fiberImage = fiberImage > 0.5;
+
+
+    figure; imshow(fiberImage)
+
     % Step 2: Skeletonize the object
     skeletonImage = bwskel(fiberImage);
 

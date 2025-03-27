@@ -1,6 +1,7 @@
 %scratch plotting code for getting supplementary plots
 close all; clear; clc;
-load("fiberdata.mat");
+load('C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\C2C12 40x\fiberdataM2_1.mat')
+%load("");
 
 condition = 1; 
 rep = 1; 
@@ -76,12 +77,14 @@ figure;
 stats = regionprops(labels, 'Circularity');
 
 circularity = [0 stats.Circularity];
-CircularityMap = round(circularity(labels+1)*230);
+CircularityMap = round(circularity(labels+1)*180);
 c = colormap('jet');%palette2./255;%colormap('parula');
 imshow(label2rgb(CircularityMap, flip(c), 'w','noshuffle'))
-makeScaleBar(1/4.6341, 100, imageN, '\mum', 'k')
+makeScaleBar(1/4.6341, 100, imageN, '\mum', 'w')
 title('Nuclei Circularity 12.5')
-colormap(flip()
+c = flip(c);
+c = c(1:180, :);
+colormap(c)
 colorbar;
 %%
 figure; 
@@ -104,6 +107,12 @@ mode(circularity)
 % this is the best way I found to get width measurements
 function [fiberWidths] = altWidthMeasure(fiberImage)
     
+    figure; imshow(fiberImage)
+    %filter image
+    fiberImage = imfill(fiberImage, "holes");
+    fiberImage = imguas
+    figure; imshow(fiberImage)
+
     % Step 2: Skeletonize the object
     skeletonImage = bwskel(fiberImage);
 

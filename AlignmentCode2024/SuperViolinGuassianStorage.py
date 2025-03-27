@@ -66,7 +66,7 @@ for size in sizeNames:
                 #Get the approximate number out of 10000 for each direction
                 for i in range(1,round(dataPt*10000)):
                 
-                hnbgfb       
+                     
                     #save the data into the table
                     data = {
                         'direction': x[dirCount],

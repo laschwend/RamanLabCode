@@ -25,6 +25,9 @@ pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Dire
 pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/C2C12 4x/Directionality_TablesM/"
 pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/Cook 4x/Directionality_TablesH/"
 
+pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/C2C12 4x/Directionality_TablesM_withoutFilter/"
+pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/Cook 4x/Directionality_TablesH_withoutFilter/"
+
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables C2C12_2/"
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables Human_3/"
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables C2C12_3/"
@@ -84,6 +87,12 @@ for size in sizeNames:
                 fileName = pathName + "C2C12_4x_"+ size+"_rep" + str(rep) + "_fullWellFiltered_table"
             else: 
                 fileName = pathName + "Cook_4x_"+ size+"_rep" + str(rep) + "_fullWellFiltered_table"
+                
+            #for new data with no filtering 1/8/2025
+            if C2C12Bool: 
+                fileName = pathName + "C2C12_4x_"+ size+"_rep" + str(rep) + "-MaxIP_table"
+            else: 
+                fileName = pathName + "Cook_4x_"+ size+"_rep" + str(rep) + "-MaxIP_table"
             # picName = "C:/Users/laSch/Dropbox(MIT)/RamanLab/LauraSchwendeman/20240...dpics/otherreplicates/" + size+"_rep" + str(rep) + "_4x" + loc + "-MaxIP"
             # picName = "C:/Users/laSch/Dropbox(MIT)/RamanLab/LauraSchwendeman/20240...itchedpics/otherreplicates/12pt5_rep14x_fullWellFiltered"
             # picName = "C:/Users/SonikaKohli/MITDropbox/RamanLab/SonikaKohli/Data...ataanalysis/C2C124x/C2C12_4x_" +size + "_rep" +str(rep) +"_fullWellFiltered"

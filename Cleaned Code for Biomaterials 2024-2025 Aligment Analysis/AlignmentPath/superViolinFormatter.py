@@ -25,6 +25,10 @@ pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Dire
 pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables Human_2/"
 pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/C2C12 4x/Directionality_TablesM/"
 pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/Cook 4x/Directionality_TablesH/"
+
+pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/C2C12 4x/Directionality_TablesM_withoutFilter/"
+pathName = "C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/1_3_2025 Sonikas Stamp Analysis Copy/Stamp data analysis/Cook 4x/Directionality_TablesH_withoutFilter/"
+
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables C2C12_3/"
 #pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/AlignmentCode2024/Directionality Tables Human_3/"
 #sizeNames = ["25", "125", "250", "unstamped", "flat"]
@@ -61,9 +65,9 @@ locationNames = [""]#["R", "L", "center", "top", "bottom"]
 #note, need to already have this csv made in excel, or write 
 #code to make a new .csv file
 if C2C12Bool: 
-    saveName = "Violin_C2C12_Revision.csv"
+    saveName = "Violin_C2C12_Revision2.csv"
 else:
-    saveName = "Violin_Cook_Revision.csv"
+    saveName = "Violin_Cook_Revision2.csv"
 savePathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/superviolin-master/superviolin/superviolin/res/"
 
 saveFileN = savePathName + saveName
@@ -98,6 +102,13 @@ for size in sizeNames:
                 fileName = pathName + "C2C12_4x_"+ size+"_rep" + str(rep) + "_fullWellFiltered_table"
             else: 
                 fileName = pathName + "Cook_4x_"+ size+"_rep" + str(rep) + "_fullWellFiltered_table"
+           
+           
+            #for new data with no filtering 1/8/2025
+            if C2C12Bool: 
+                fileName = pathName + "C2C12_4x_"+ size+"_rep" + str(rep) + "-MaxIP_table"
+            else: 
+                fileName = pathName + "Cook_4x_"+ size+"_rep" + str(rep) + "-MaxIP_table"
            
             #this is from how I saved the files, if you change the imageJ script, you could drop a .csv
             csvFileName = fileName+".csv.csv"

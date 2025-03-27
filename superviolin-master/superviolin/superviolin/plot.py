@@ -15,12 +15,13 @@ from scipy.stats import ttest_ind, ttest_rel
 params["xtick.labelsize"] = 8
 params["ytick.labelsize"] = 8
 params["axes.labelsize"] = 9
-params["axes.spines.right"] = False
+params["axes.spines.left"] = False
 params["axes.spines.top"] = False
 params["figure.dpi"] = 300
 params['legend.fontsize'] = 5
 params['ps.fonttype'] = 42
 params['ps.fontttype'] = 42
+params['pdf.fonttype'] = 42
 
 
 class Superviolin:
@@ -511,6 +512,8 @@ class Superviolin:
         width = 1 + len(self.subgroups) / 2
         height = 5 / 2.54
         plt.figure(figsize=(width, height))
+        
+
         ticks = []
         lbls = []
         
@@ -593,7 +596,8 @@ class Superviolin:
         if ylimits != "None":
             lims = (float(i) for i in ylimits.split(", "))
             plt.ylim(lims)
-        plt.savefig('C:\Users\laSch\Desktop\Raman Lab\Resources for Biomaterials Paper 2024\Figure Images\SupervioinHumanOrC2C12.pdf', dpi=300)
+        plt.savefig('./SupervioinHumanOrCook.pdf', dpi=300)
+        print("aaaaahadshf")
         
     @staticmethod
     def _find_nearest(array, value):
@@ -695,6 +699,7 @@ class Superviolin:
         # plot statistics if only 2 or 3 groups
         if on_plot == "yes" and num_groups in [2, 3]:
             ax = plt.gca()
+            
             low, high = ax.get_ylim()
             span = high - low
             increment = span * 0.03 # add high to get the new y value

@@ -14,6 +14,7 @@ replicates = 1:3;
 
 
 for cIndx = conditions
+    
     for rIndx = replicates
 
         %get the name of the file to open and the file to save to 

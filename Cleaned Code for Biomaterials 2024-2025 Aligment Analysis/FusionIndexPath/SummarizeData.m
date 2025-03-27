@@ -6,10 +6,24 @@
 clear all; close all; clc;
 
 %load the data you want to look at, human or c2c12
-load("fiberdataH.mat");
+%load("fiberdataH2_1 - Copy.mat");
+C2C12 = 0; 
+
+if C2C12
+    load("fiberdataM2_1 - Copy.mat");
+    replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [7,5,5,8,8]);
+else
+   %load the data you want to look at, human or c2c12
+    load("fiberdataH2_1 - Copy.mat");
+    replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [8,9,5,6,8]);
+end
 
 numConditions = size(FiberDataStruct,1); 
 numReps = size(FiberDataStruct, 2);
+
+
+
+ConditionsLabel = (["12pt5", "25", "125", "flat", "unstamped"]);
 
 
 %% plot the average nuclei count/fiber
@@ -49,11 +63,14 @@ numReps = size(FiberDataStruct, 2);
 
 %open the excel workbook - need to pre-generate this, open and name an
 %excel workbook and save it and then write the path down here
-fileNameExcel = "C:\Users\laSch\Desktop\Raman Lab\RamanlabCode\AlignmentCode2024\FiberAnalysis\HumanFiberData40x.xlsx";
-
+if C2C12
+    fileNameExcel = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\C2C12 40x\C2C12_Data_Summarized.xlsx";
+else
+    fileNameExcel = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\Cook 40x\Cook_Data_Summarized.xlsx";
+end
 
 %for naming each conidion and replicate
-Conditions = {"12.5", "25", "62.5", "125", "flat", "unstamped"};
+Conditions = {"12.5", "25", "125", "flat", "unstamped"};
 
 FusionData = {"FusionIndex", "StampCondition", "Replicate", "Category"};
 
@@ -67,13 +84,14 @@ AverageCountperReplicate = {"AverageCount", "StampCondition", "Replicate", "Cate
 
 AverageCircReplicate = {"AverageCircularity", "StampCondition", "Replicate", "Category"};
 
-ConditionMap = {"grooved","grooved","grooved","grooved", "ungrooved", "ungrooved"};
+ConditionMap = {"grooved","grooved","grooved", "ungrooved", "ungrooved"};
 
     %loop through all the objects and get the fusion Index and put it in a
     %cell of the spreadsheet
     count = 2;
     FiberCount = 2; 
  for conditionNum = 1:numConditions
+     numReps = replicateDict(ConditionsLabel{conditionNum});
     for rep = 1:numReps
         %get the fusion index
         FiberImageData = FiberDataStruct{conditionNum, rep};
@@ -162,8 +180,13 @@ writecell(AverageCircReplicate, fileNameExcel, 'Sheet', sheetStr, 'Range', 'A1')
 %% Save all the nuclei count Figures to an excel sheet
 %for getting the images: 
 %dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240530 alignment 6 good IF\40x pancakes\";
-dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240603 Alignment Experiment 7 - human tc twitch\40x pancakes\"
-conditionNames = {"12pt5", "25", "6pt25", "125", "flat", "unstamped"};
+%dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240603 Alignment Experiment 7 - human tc twitch\40x pancakes\"
+if C2C12
+    dirLocation = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\C2C12 40x\";
+else
+    dirLocation = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\Cook 40x\";
+end
+    conditionNames = {"12pt5", "25", "125", "flat", "unstamped"};
 
 sheetNum = 7; 
 
@@ -175,14 +198,23 @@ wrkbk =  excel.Workbooks;
 graphFile = wrkbk.Open(fileNameExcel);
 sheet = get(graphFile.Sheets, 'Item', sheetNum);
 
-columns = {'A', 'K', 'T'}; %for number of replicates
+columns = {'A', 'K', 'T', 'AA', 'AK', 'AT', 'BA', 'BK', 'BT'}; %for number of replicates
+
+%for cell type
+if C2C12
+    cellType = "C2C12";
+else
+    cellType = "Cook";
+end
 
 %loop through each condition
 for conditionNum = 1:numConditions
+    numReps = replicateDict(ConditionsLabel{conditionNum});
     for rep = 1:numReps
         FiberImageData = FiberDataStruct{conditionNum, rep};
         labels = FiberImageData.nucleiLabels;
-        fileNameN = dirLocation +  conditionNames{conditionNum} +"_rep" + num2str(rep) + "_40x_pancake_nuclei.tif";
+        %fileNameN = dirLocation +  conditionNames{conditionNum} +"_rep" + num2str(rep) + "_40x_pancake_nuclei.tif";
+        fileNameN = dirLocation + cellType + "_40x_" + conditionNames{conditionNum} +"_rep" + num2str(rep) + "_nuclei.tif";
         imageN = imread(fileNameN);
         imageN = im2gray(imageN);
 
@@ -208,10 +240,11 @@ sheetNum = 6;
 sheet = get(graphFile.Sheets, 'Item', sheetNum);
 
 for conditionNum = 1:numConditions
+    numReps = replicateDict(ConditionsLabel{conditionNum});
     for rep = 1:numReps
         FiberImageData = FiberDataStruct{conditionNum, rep};
         labels = FiberImageData.nucleiLabels;
-        fileNameN = dirLocation +  conditionNames{conditionNum} +"_rep" + num2str(rep) + "_40x_pancake_nuclei.jpg";
+        %fileNameN = dirLocation +  conditionNames{conditionNum} +"_rep" + num2str(rep) + "_40x_pancake_nuclei.jpg";
         imageN = FiberImageData.muscleLabels; 
         colormap = [1 0 0; repmat([1 0 0], max(imageN, [],'all'), 1)];
         imageN = label2rgb(imageN, colormap);
