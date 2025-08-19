@@ -1,0 +1,220 @@
+%Script for processing through and saving the widths of different channels
+%from experiments
+
+%author: Laura S. 
+%date: 8/1/2025
+
+
+%user defined variables
+folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\7_25_25 leak test r1 - 11-8-345\";
+fileNames = {"11-8-3_AB_channel_20x.nd2", "11-8-3-LS_20X.nd2", "11-8-4_AB_channel_20x.nd2", "11-8-4-LS_20X.nd2","11-8-5_AB_channel_20x.nd2", "11-8-5-LS_20X.nd2"};
+
+folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\7_31_25 R11-8-345 round3 before\";
+fileNames = {"Round3_11-8-3_20x_middle.nd2", "Round3_11-8-4_20x_right.nd2", "Round3_11-8-5_20x_midde.nd2"};
+
+folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\8_1_25 11-8-345 round3 rightaftercasting\";
+fileNames = {"11-8-3_LS_20x_left", "11-8-3_LS_20x_middle","11-8-3_LS_20x_right"...
+    "11-8-3_LS_20x_left", "11-8-4_LS_20x_middle","11-8-5_LS_20x_right", ...
+    "11-8-3_LS_20x_left", "11-8-4_LS_20x_middle","11-8-5_LS_20x_right"};
+
+AnalysisLayer = 1;
+
+dataStructSaveName = "11_8_345_castingR3.mat";
+
+%% load the datastruct to save to if already available
+try 
+    load(dataStructSaveName)
+    newFile = 0; 
+catch
+    disp("no previous save for the files, making a new data aquisition for the pictures.")
+    newFile = 1; 
+end
+
+%% Loop through each file and extract larger channel dimension and smaller
+%channel deimension
+%add option for viewing the filtered 3D image stack?
+wideChannelDimensions = zeros(length(fileNames), 1);
+thinChannelDimensions = zeros(length(fileNames), 1);
+
+for f = 1:length(fileNames)
+
+    %get image Stack
+    file = convertStringsToChars( folderDir + fileNames{f} + ".nd2");
+    reader =  BioformatsImage(file);
+
+    imageStack = makeImageStack(reader, 1);
+
+    %Now get a filtered version of the stack
+    filteredStack = filterTheStack(imageStack, reader);
+
+
+    %show a 3D volume version of the filtered stack
+    % figure(1)
+    % alphaMap = linspace(0, 1, 256);
+    % alphaMap(1:55) = 0;
+    % volshow(filteredStack, "Alphamap",alphaMap)
+
+  
+    %provide an crop rectangle for each of the thicknesses if already
+    %provided
+    if newFile
+        old_rectt_wide = 0; 
+        old_rectt_thin = 0; 
+    else
+        old_rectt_wide = imageParam.wideRectt{f}; 
+        old_rectt_thin = imageParam.thinRectt{f}; 
+    end
+
+    %now get the value of the widechannel
+    [wideChannelDimensions(f), imageParam.wideRectt{f}] = getChannelWidth(imageStack, AnalysisLayer, reader, "Large Width", newFile, old_rectt_wide); 
+
+    %get the value of the small channel
+    [thinChannelDimensions(f), imageParam.thinRectt{f}] = getChannelWidth(imageStack, AnalysisLayer, reader, "Thin Width", newFile, old_rectt_thin);
+  
+
+
+end
+
+%% saving the data collected
+imageParam.wideChannelDimensions = wideChannelDimensions; 
+imageParam.thinChannelDimensions = thinChannelDimensions; 
+imageParam.fileNames = fileNames; 
+save(dataStructSaveName, "imageParam");
+
+%show summary plots
+
+figure(10);
+bar(thinChannelDimensions);
+ylabel("Thickness (um)")
+title("ThinAverageWidths")
+set(gca, "XTickLabel", fileNames)
+
+figure(11);
+bar(wideChannelDimensions);
+ylabel("Thickness (um)")
+title("WideAverageWidths")
+set(gca, "XTickLabel", fileNames)
+
+%% testing
+makeLabels(fileNames)
+
+%% functions
+
+function [imageStack] = makeImageStack(reader, channel)
+
+    imageStack = zeros(reader.width, reader.height, reader.sizeZ); 
+
+    for z = 1:reader.sizeZ
+    
+        imageStack(:,:,z) = getPlane(reader, z, channel, 1);
+    
+    end
+
+
+end
+
+
+function [filteredStack] = filterTheStack(imageStack, reader)
+
+    filteredStack = zeros(reader.width, reader.height, reader.sizeZ); 
+
+    for z = 1:reader.sizeZ
+    
+        J = imageStack(:,:,z);
+        %Filter the image
+        J_filt = imgaussfilt(J, 5);
+        J_filt = mat2gray(J_filt);
+
+        filteredStack(:,:,z) = J_filt;
+    
+    end
+
+end
+
+function [channelAveWidth, rectt] = getChannelWidth(imageStack, layerHeight, reader, titleString, newFileBool, old_rectt)
+
+    J = imageStack(:,:,layerHeight);
+
+
+    figure(1);
+    J = imshow(J, []);
+    title(titleString);
+
+
+    if newFileBool
+        [J,rectt] = imcrop(J);
+    else
+        [J,rectt] = imcrop(J, old_rectt);
+    end
+
+    J_filt = imgaussfilt(J, 5);
+    
+    J_filt = mat2gray(J_filt);
+
+    J_bin = imbinarize(J_filt, 0.5);
+
+    measures = altWidthMeasure(~J_bin);
+
+    channelAveWidth =  reader.pxSize(1)*mean(measures);
+    
+
+end
+
+
+
+function [fiberWidths] = altWidthMeasure(fiberImage)
+    
+
+    
+    % Step 2: Skeletonize the object
+    skeletonImage = bwskel(fiberImage);
+
+    figure(5);
+    subplot(2,3,1)
+    imshow(skeletonImage);
+    title('skelImage')
+
+    edtImage = bwdist(~fiberImage); 
+
+    subplot(2,3,2);
+    imshow(edtImage, []);
+    title('distance image')
+
+    diameterImage = 2 * edtImage .* single(skeletonImage);
+
+    subplot(2,3,3);
+    imshow(diameterImage, [])
+    title('Diameter Image');
+
+    fiberWidths = diameterImage(diameterImage >0);
+
+    subplot(2,3,4);
+    histogram(fiberWidths);
+    grid on;
+    xlabel('Width in Pixels');
+    ylabel('Count');
+    title('widths');
+
+    subplot(2,3,5);
+    imshow(fiberImage);
+    title('original image')
+
+    %  figure(3);
+    % imshow(edtImage*2, []);
+    % 
+    % [redSkelx, redSkely] = find(skeletonImage >0); 
+    % 
+    % hold on
+    % plot(redSkely, redSkelx, '.r', "MarkerSize", 3);
+    % 
+    % boundaries = bwboundaries(fiberImage);
+    % x = boundaries{1}(:, 2);
+    % y = boundaries{1}(:, 1);
+    % 
+    % plot(x, y, '.y', "MarkerSize", 3)
+
+
+    
+
+end
+
