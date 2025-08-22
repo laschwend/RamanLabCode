@@ -18,14 +18,11 @@ fileNames = {"11-8-3_LS_20x_left", "11-8-3_LS_20x_middle","11-8-3_LS_20x_right".
     "11-8-3_LS_20x_left", "11-8-4_LS_20x_middle","11-8-5_LS_20x_right"};
 
 %for leak test 8/14
-folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\8_14_2025 11-8-375 round 2 Leak Test char\Gels\";
-fileNames = {"um10_1_20x_galvano_leftchannel002", "um10_1_20x_galvano_middlechannel", "um10_1_20x_galvano_rightchannel001", ...
-    "um10_2_20x_galvano_middlechannel004", "um10_2_20x_galvano_rightchannel003", "um10_2_20x_galvano_rightchannel005", ...
-    "um75_1_20x_galvano_middlechannel007", "um75_1_20x_galvano_rightchannel008", "um75_2_20x_galvano_leftchannel006"};
+folderDir = 
 
 AnalysisLayer = 1;
 
-dataStructSaveName = "11_8_375_leaktest_8_14_25_2.mat";
+dataStructSaveName = "11_8_345_castingR3.mat";
 
 %% load the datastruct to save to if already available
 try 
