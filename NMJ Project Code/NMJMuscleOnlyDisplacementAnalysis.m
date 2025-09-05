@@ -1,0 +1,182 @@
+%Author: Laura Schwendeman
+%Date: 8/26/2025
+%Purpose: To Organize Figure data for figure 3 of NMJ paper (namely analyze
+%the displacement data)
+
+close all; 
+clear all; 
+
+%list all of the directories to pull from and organize the conditions
+OptoPath = 0;
+RGECOPath = "C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Muscle Only Experiments\RGECO R1";
+WTPath = "C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Muscle Only Experiments\WT R2";
+
+OptoNameTemplate = 0;
+RGECONameTemplate = "\Converted_Videos\10x_RGECO_10vpp_5vdcoffset_5duty_1hz_";
+WTNameTemplate = "\Converted_Videos\10x_WTR2_10vpp_5vdcoffset_5duty_1hz_";
+
+OptoIDs = 0;
+RGECOIDs = {"B3", "B4", "B5", "C3", "C4", "C5"};
+WTIDs = {"B2", "B3-02", "B4", "C2-02", "C3", "C4"};
+
+endingString = "_0.0-5.0sec";
+
+
+datatxtname = "\results\MAD_timeseries.txt";
+
+% pixel to um conversion factor
+px2um = 1/1137.686*1000; %um/px
+
+
+%naming conventions for data
+Conditions = {"RGECO", "WTR2"};
+
+%% generate all the file locations and the datastructure
+
+%RGECO setup
+RGecoData = initializeDataStruct(Conditions{1}, RGECOPath, RGECONameTemplate, RGECOIDs, endingString, datatxtname, px2um);
+makeDisplacementPlots(RGecoData);
+
+RGecoData = getMaxDisp(RGecoData);
+
+%WT setup
+WTData = initializeDataStruct(Conditions{2}, WTPath, WTNameTemplate, WTIDs, endingString, datatxtname, px2um);
+makeDisplacementPlots(WTData);
+
+WTData = getMaxDisp(WTData);
+
+
+%% Plot Summary Displacement Data
+figure(); 
+
+%get all the averages
+RGecoMad = getAllAverageMADMaxs(RGecoData);
+WTMad = getAllAverageMADMaxs(WTData);
+
+%plot the bars
+h = bar(["RGECO", "WT"], [mean(RGecoMad), mean(WTMad)]);
+hold on; 
+scatter(repmat(h(1).XEndPoints(1), length(RGecoMad), 1), RGecoMad);
+scatter(repmat(h(1).XEndPoints(2), length(WTMad), 1), WTMad);
+xlabel("Cell Type");
+ylabel("MADMax Displacement (um)");
+
+
+%% functions
+function [datastruct] = initializeDataStruct(conditionName, Path, NameTemplate, reps, endingString, dataTxtString, px2um)
+
+    datastruct = {};
+
+    for i = 1:length(reps)
+        replicate.condition = conditionName + " " + reps{i}; 
+        replicate.fileName = Path + NameTemplate + reps{i} + endingString; 
+        replicate.MADdisplacement = getMADStringData(replicate.fileName +dataTxtString)*px2um;
+        datastruct{i} = replicate; 
+    end
+
+end
+
+function [madDisplacementString] = getMADStringData(filename)
+    madDisplacementString = importdata(filename);
+end
+
+function [peaksLoc, valleysLoc] = getpeaksNvalleys(MADDisp)
+    
+    [~, peaksLoc] = findpeaks(MADDisp, "MinPeakDistance", 25);
+    [~,valleysLoc] = findpeaks(-MADDisp, "MinPeakDistance", 25);
+ 
+
+end
+
+function [MADMaxs, averageMADMax] = getAverageDisplacement(MADDisp, peaksLoc, valleysLoc)
+
+    peaks = MADDisp(peaksLoc);
+    MADMaxs = [];
+    for p = 1:length(peaksLoc)
+        
+        pL = peaksLoc(p);
+        vL = find(valleysLoc - pL > 0, 1);
+
+        if isempty(vL)
+
+            vL = length(valleysLoc);
+        end
+
+        vL = MADDisp(valleysLoc(vL)); 
+        pLl = MADDisp(pL);
+
+        MADMaxs(end+1) = pLl-vL;
+       
+
+    end
+
+    averageMADMax = mean(MADMaxs);
+
+end
+
+
+function [] = plotDisplacementAndPeakLocations(subplotNum, subplotDim, struct, peakLoc, valleyLoc)
+    
+    subplot(subplotDim(1), subplotDim(2), subplotNum);
+    hold on; 
+    plot(struct.MADdisplacement, 'w')
+    plot(peakLoc, struct.MADdisplacement(peakLoc), 'or');
+    plot(valleyLoc, struct.MADdisplacement(valleyLoc), 'ob');
+    title(struct.condition);
+    xlabel("frame")
+    ylabel("Displacement (um)")
+    
+    
+end
+
+function [] = makeDisplacementPlots(datastruct)
+
+nFiguresCol = ceil(sqrt(length(datastruct))); 
+nFiguresRow = ceil(length(datastruct)/nFiguresCol);
+
+subplotDim = [nFiguresRow nFiguresCol];
+
+figure; 
+
+for i = 1:length(datastruct)
+
+    rep = datastruct{i}; 
+
+    [pL, vL] = getpeaksNvalleys(rep.MADdisplacement);
+
+    plotDisplacementAndPeakLocations(i, subplotDim, rep, pL, vL);
+
+
+end
+
+end
+
+%that moment when I really should have made a class object for this
+function [updatedData] = getMaxDisp(datastruct)
+
+    for i = 1:length(datastruct)
+
+    rep = datastruct{i}; 
+
+    [pL, vL] = getpeaksNvalleys(rep.MADdisplacement);
+
+    
+    [a, rep.AveMax] =  getAverageDisplacement(rep.MADdisplacement, pL, vL);
+
+    updatedData{i} = rep; 
+
+end
+
+end
+
+
+function [allAverages] = getAllAverageMADMaxs(datastruct)
+    allAverages = [];
+
+    for i = 1:length(datastruct)
+        
+        allAverages = [allAverages datastruct{i}.AveMax];     
+
+    end
+    
+end

@@ -9,18 +9,26 @@ clear all;
 filefolder = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper Figure Resources\Fig 2\";
 filename = "Groove Projection View Bin_YZ 512.png";
 
-pixelSize = 79.81/92; %um
+% non-binary file 
+filefolder = "C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper Figure Resources\Fig 2\";
+filename = "Groove Projection View No Bin_2.png";
+%filename = "SAM Image2.png"
+
+pixelSize = 79.41/92; %um
 
 %% Process Image
 im = imread(filefolder+filename); 
 
 figure(1);
+subplot(2,3,1)
 imshow(im); 
 
 %make a binary object
-%im = mat2gray(im);
-imBin = imbinarize(im(:,:,3), 0.99);
-figure(2);
+im = mat2gray(im);
+I = im;%im(:,:,2);
+T = adaptthresh(I, .85);
+imBin = imbinarize(I, T);
+subplot(2,3,2)
 imshow(imBin)
 hold on; 
 %get the border line
@@ -41,28 +49,39 @@ B = B(1:(end-50), :);
 
 plot(B(:,2), B(:,1), 'y', 'LineWidth',2)
 
+%plot the boundary over the original image
+%subplot(2,3,3);
+figure(3);
+imshow(I);
+hold on; 
+plot(B(:,2), B(:,1), 'y', 'LineWidth',2)
+
 %set the pixel values to the actual dimensions
 B = B.*pixelSize; 
+
+%for SAM Image - get rid of tail end of grooves
+%B = B(1:(end-500), :);
 
 %subtract off the min value to lower the line
 B(:,2) = B(:,2) - min(B(:,2), [], "all");
 
 %% now get the peak and valley locations
-figure(4);
+figure(1);
+subplot(2,3,4);
 
 plot(B(:,1), B(:,2), 'k');
 xlabel("(um)");
 ylabel("(um)");
 
-[peaksvals, peaks] = findpeaks(B(:,2), "MinPeakDistance", 30);
-[valleyvals, valleys] = findpeaks(-B(:,2), "MinPeakDistance", 30, 'MinPeakHeight', -15);
+[peaksvals, peaks] = findpeaks(B(:,2), "MinPeakDistance", 30, "MinPeakHeight", 20);
+[valleyvals, valleys] = findpeaks(-B(:,2), "MinPeakDistance", 30, 'MinPeakHeight', -20);
 
 hold on; 
 plot(B(peaks,1), B(peaks,2), 'or');
 plot(B(valleys, 1), B(valleys, 2), 'ob');
 
 %% seperate the signal into the discrete sections
-figure(5); hold on; 
+subplot(2,3,5); hold on; 
 
     interpPtAmt = 200; 
     Grooves = zeros(interpPtAmt, 2, length(valleys)-1); 
