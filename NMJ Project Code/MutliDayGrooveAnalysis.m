@@ -23,24 +23,25 @@ close all; clear all;
 
 %% Code Declarations
 saveName = 'NMJGrooveAnalysis9_25_25.mat';
-excelName = 'NMJGrooveAnalysis9_25_25.csv'
+excelName = 'NMJGrooveAnalysis9_25_25.xlsx'
 
 %file path notes
 DropboxPath = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper Figure Resources\Fig 2\Longevity Study 9_18_25 Segmented Images\";
 
-fileNames = {"20x_#7_C1_region1_denoised - 512_D1_SAM.png", "20x_#7_C1_region2_denoised_D1_SAM.png", "20x_#7_C1_region3_denoised_D2_SAM.png", "20x_#7_C1_region4_denoised_D6_SAM.png"};
 
-dayLabel = {"D1", "D1", "D2", "D6"};
+fileNames = {"20x_#7_C1_region1_denoised - 512_D1_SAM.png", "20x_#7_C1_region2_denoised_D1_SAM.png", "20x_#7_C1_region3_denoised_D2_SAM.png", "20x_#7_C1_region4_denoised_D6_SAM.png", "SAM Image1.png"};
+
+dayLabel = {"D1", "D1", "D2", "D6", "D0"};
 
 %peak parameters
-peakDist = [40, 40, 40, 40]; 
-peakHeight = [5 5 5 5];
-valleyHeight = [-70 -40 -40 -70];
+peakDist = [40, 40, 40, 40, 40]; 
+peakHeight = [5 5 5 5, 10];
+valleyHeight = [-70 -40 -40 -70, -10];
 
 
 %Universal parameters
-cutoff1 = [400, 1000, 1250, 400]; 
-cutoff2 = [40, 250, 40, 40];
+cutoff1 = [400, 1000, 1250, 400, 300]; 
+cutoff2 = [40, 250, 40, 40, 10];
 pixelSize = 883.88/1024;%um
 
 %Data saving variable
@@ -86,7 +87,7 @@ end
 save(saveName, "Data");
 
 
-%save an excel with summary data
+%% save an excel with summary data
 
     sheetStr = 'Sheet1';
     writecell(summaryDatah, excelName, 'Sheet', sheetStr, 'Range', 'A1');
