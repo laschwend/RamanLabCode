@@ -60,7 +60,7 @@ summaryDataw{1,1} = "Day";
 summaryDataw{1,2} = "width";
 
 
-for i = 1:length(fileNames)
+for i = [length(fileNames), 1:(length(fileNames)-1)]
     close all; 
      
     grooveStudy = GrooveImage(DropboxPath, fileNames{i}, pixelSize, .95, peakDist(i), peakHeight(i), valleyHeight(i), cutoff1(i), cutoff2(i));
