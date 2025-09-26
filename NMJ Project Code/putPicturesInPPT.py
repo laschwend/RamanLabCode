@@ -23,6 +23,8 @@ image_folder = 'C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/7_25_25 l
 image_folder = 'C:/Users/laSch/MIT Dropbox\Raman Lab\Laura Schwendeman/8_8_25 Leica Stamps from 8_7 before assembly'
 image_folder = 'C:/Users/laSch/MIT Dropbox\Raman Lab\Laura Schwendeman/8_8_25 Leica Stamps from 8_7 before assembly'
 image_folder = 'C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/8_11_25 nmj GELMA casting results/DAY 0 Seeding Results processing Folder'
+image_folder = 'C:/Users/laSch/MIT Dropbox/Raman Lab/Laura Schwendeman/9_18_25 Gel Longevity and Leak Studies/Gels D1'
+
 output_pptx = image_folder + '/output_presentation.pptx'
 
 # --- Create Presentation ---

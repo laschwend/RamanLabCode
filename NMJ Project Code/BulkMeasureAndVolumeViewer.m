@@ -23,9 +23,17 @@ fileNames = {"um10_1_20x_galvano_leftchannel002", "um10_1_20x_galvano_middlechan
     "um10_2_20x_galvano_middlechannel004", "um10_2_20x_galvano_rightchannel003", "um10_2_20x_galvano_rightchannel005", ...
     "um75_1_20x_galvano_middlechannel007", "um75_1_20x_galvano_rightchannel008", "um75_2_20x_galvano_leftchannel006"};
 
+%for leaktest 9/18
+folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\9_18_25 Gel Longevity and Leak Studies\Gels D1\Channels\";
+fileNames = {"20x_#1_B1_Channel_center", "20x_#3_B3_Channel_center", "20x_#4_B4_Channel_center", "20x_#9_C3_Channel_center", "20x_#10_C4_Channel_center"};
+
+%for Leaktest 9/12
+folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\9_12_25 Leak Test Images NMJ\";
+fileNames = {"BeforeTest_1channel2", "BeforeTest_1channel3", "BeforeLeakTest1channels#3_1"};
+
 AnalysisLayer = 1;
 
-dataStructSaveName = "11_8_375_leaktest_8_14_25_2.mat";
+dataStructSaveName = "11_8_3_Channels_9_12_25_3.mat";
 
 %% load the datastruct to save to if already available
 try 
@@ -70,6 +78,8 @@ for f = 1:length(fileNames)
         old_rectt_wide = imageParam.wideRectt{f}; 
         old_rectt_thin = imageParam.thinRectt{f}; 
     end
+
+    AnalysisLayer = floor(reader.sizeZ/2)+3;
 
     %now get the value of the widechannel
     [wideChannelDimensions(f), imageParam.wideRectt{f}] = getChannelWidth(imageStack, AnalysisLayer, reader, "Large Width", newFile, old_rectt_wide); 

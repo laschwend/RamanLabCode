@@ -1,0 +1,275 @@
+classdef GrooveImage
+    properties
+        imageName
+        fileFolder
+        pixelSize
+        rawImage
+        thresholdImage
+        boundaryData
+        boundaryDataMod
+        peakLocs
+        valleyLocs
+        peakVals
+        valleyVals
+        thresholdVal = .95
+        cutoff = 100
+        cutoff2 = 100; 
+        PeakValdist
+        PeakHeight
+        ValHeight
+        Grooves %the final grooves pulled out from the image
+    end
+
+    methods 
+
+        function this = GrooveImage(Folder, imageNam, pixelSize, thres, peakdist, peakH, valH, cutoff1, cutoff2)
+
+            this.fileFolder = Folder; 
+            this.imageName = imageNam; 
+            this.pixelSize = pixelSize; 
+            this.thresholdVal = thres;
+
+            %generate the image
+            this.rawImage = imread(Folder+imageNam);
+
+            this.cutoff = cutoff1; 
+            this.cutoff2 = cutoff2; 
+
+            %process the image
+            this = this.makeThresholdImage();
+
+            %find the peaks and valleys and update them
+            this.PeakValdist = peakdist; 
+            this.PeakHeight = peakH; 
+            this.ValHeight = valH; 
+            this = this.findGroovePeaks();
+
+            this = this.populateGrooves();
+
+            
+            
+
+        end
+
+        function [this] = initializeMoreValues(this)
+
+
+        end
+
+        function [rawIm] = getRawIm(this)
+            rawIm = this.rawImage;
+        end
+
+        function [this] = makeThresholdImage(this)
+                
+                im = this.getRawIm();
+                im = mat2gray(im);
+                I = im(:,:,2);
+                I(I<.01) = 0;
+                %T = adaptthresh(I, this.thresholdVal);
+                imBin = imbinarize(I);
+
+                this.thresholdImage = imBin; 
+
+                %get the border line
+                boundary = bwboundaries(imBin);
+                
+                
+                %get rid of the edges
+                B = boundary{1};
+                
+                deleteLocs = B(:,1) == 1 | B(:, 2) == 1;
+                
+                B(deleteLocs, :) = [];
+                B = B(this.cutoff2:(end-this.cutoff), :);
+                 
+                
+                %set the value of the pixel boundary data for visualization
+                this.boundaryData = B; 
+
+                %now process it a little more
+                %set to right size in um
+                B = B.*this.pixelSize;
+                %subtract off the min value to lower the line
+                B(:,2) = B(:,2) - min(B(:,2), [], "all");
+                this.boundaryDataMod = B;
+
+        end
+
+        function this = findGroovePeaks(this)
+
+             B = this.boundaryDataMod;
+
+            [this.peakVals, this.peakLocs] = findpeaks(B(:,2), "MinPeakDistance", this.PeakValdist, "MinPeakHeight", this.PeakHeight);
+            [this.valleyVals, this.valleyLocs] = findpeaks(-B(:,2), "MinPeakDistance", this.PeakValdist, 'MinPeakHeight', this.ValHeight);
+
+             
+                
+
+        end
+
+        function this = populateGrooves(this)
+
+                valleys = this.valleyLocs;
+                B = this.boundaryDataMod;
+
+                interpPtAmt = 200; 
+                Grooves = zeros(interpPtAmt, 2, length(valleys)-1); 
+                %loop through each valley point
+            for i = 1:(length(valleys)-1)
+                
+                %get the x locs of the valleys
+                x1 = valleys(i);
+                x2 = valleys(i+1);
+            
+                %get the x y values
+                B_section = B(x1:x2, :);
+            
+                %floor the b section with the min value
+                B_section(:,2) = B_section(:,2) - min(B_section(:,2), [], "all");
+            
+                %get rid of duplicate x values
+                [~,uniquelocs] = unique(B_section(:,1));
+                B_section = B_section(uniquelocs, :);
+            
+                %interpolate the values for averaging
+                x_vals = (0:(interpPtAmt-1))*this.pixelSize;
+                xq = linspace(B_section(1,1), B_section(end,1),interpPtAmt);
+                y_vals = interp1(B_section(:,1), B_section(:,2), xq, "linear");
+            
+                Grooves(:,1, i) = xq-B_section(1,1); 
+                Grooves(:,2,i) = y_vals;  
+
+            end
+
+            this.Grooves = Grooves; 
+
+        end
+
+
+        %vis and access functions
+        function [] =  plotResults(this)
+
+            
+
+            figure(1);
+            subplot(1,2,1);
+            imshow(this.rawImage);
+            title(this.imageName);
+
+            B = this.boundaryData;
+            subplot(1,2, 2); 
+            imshow(this.thresholdImage)
+            hold on; 
+            plot(B(:,2), B(:,1), 'y', 'LineWidth',2)
+            title("Binarized Border")
+
+            B = this.boundaryDataMod;
+            figure(2);
+
+            subplot(1,3,1);
+            plot(B(:,1), B(:,2), 'k');
+            xlabel("(um)");
+            ylabel("(um)");
+            hold on; 
+            plot(B(this.peakLocs,1), B(this.peakLocs,2), 'or');
+            plot(B(this.valleyLocs, 1), B(this.valleyLocs, 2), 'ob');
+
+            subplot(1,3,2);
+            this.plotGrooveOverlays(); 
+             xlabel("(um)");
+             ylabel("(um)");
+
+             subplot(1,3,3);
+             this.plotSummaryGroove()
+            
+
+        end
+
+        function [] = plotGrooveOverlays(this)
+
+            hold on; 
+            for i = 1:size(this.Grooves, 3)
+                plot(this.Grooves(:,1,i), this.Grooves(:,2,i));
+            end
+        end
+
+        function [] = plotSummaryGroove(this)
+
+            AverageGroove = mean(this.Grooves, 3);
+            maxGroove = max(this.Grooves(:, 2, :), [], 3);
+            minGroove = min(this.Grooves(:, 2, :), [], 3);
+            
+            hold on; 
+            plot(AverageGroove(:,1), AverageGroove(:,2), '-k');
+            plot(AverageGroove(:,1), maxGroove, '--r');
+            plot(AverageGroove(:,1), minGroove, '--b');
+            
+            ylabel('height (um)')
+            xlabel('width (um)')
+            title('Average Groove Dimensions');
+            axis([0 50 0 30])
+            
+            
+            %add nominal dimensions line
+            r=12.5; %um
+            dtheta = .01; 
+            x1 = r*cos(-pi/2:dtheta:0); 
+            y1 = r*sin(-pi/2:dtheta:0)+r; 
+            
+            x2 = r*cos(pi:-dtheta:0) +2*r;
+            y2 = r*sin(pi:-dtheta:0)+r;
+            
+            x3 = r*cos(pi:dtheta:3/2*pi)+4*r;
+            y3 = r*sin(pi:dtheta:3/2*pi)+r;
+
+            %slide over the characteristic curve for reference
+            sig2 = AverageGroove(:,2); 
+            sig1 = interp1([x1 x2 x3]+5, [y1 y2 y3],linspace(0, x3(end), size(sig2,1)), "linear");
+            [sig1y_adjusted, sig2_adjusted, ~] = alignsignals(sig1, sig2', "Method","xcorr");
+            sig1x_adjusted = (1:length(sig1y_adjusted)).*r.*4./size(sig2,1);
+            
+            
+            plot(sig1x_adjusted, sig1y_adjusted, '-y', 'LineWidth', 2);
+
+            patch([AverageGroove(:,1); flip(AverageGroove(:,1))], [minGroove;flip(maxGroove)], [1 1 1]*.8,'FaceAlpha', 0.5, 'EdgeColor', 'none')
+            
+            legend('Average Groove', 'Maximum value', 'Minimum Value', 'Nominal Dimension');
+
+
+        end
+
+
+
+
+        %%access functions
+        function [widths, averageWidth] = getWidthAve(this)
+                
+            widths = this.Grooves(end, 1, :);
+            averageWidth = mean(widths, 'all');
+            %stdWidth = std(widths, 'all'); 
+        end
+
+        function [Heights] = getHeightAve(this)
+            
+            Heights = max(this.Grooves(:,2,:), [], 1);
+            averageHeight = mean(Heights, "all");
+            %stdHeight = std(Heights, "all"); 
+
+        end
+
+
+    end
+
+    
+
+
+
+
+
+
+
+
+
+
+end

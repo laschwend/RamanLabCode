@@ -14,7 +14,13 @@ filefolder = "C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper F
 filename = "Groove Projection View No Bin_2.png";
 %filename = "SAM Image2.png"
 
+%for the new groove images
+filefolder  = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper Figure Resources\Fig 2\";
+filename = "SAM - NMJ Gels 9_18_25 D1 Grooves YZ 582.png";
+%filename = "NMJ Gels 9_18_25 D1 Grooves YZ 582.png";
+
 pixelSize = 79.41/92; %um
+pixelSize = 883.88/1024;%um
 
 %% Process Image
 im = imread(filefolder+filename); 
@@ -25,9 +31,10 @@ imshow(im);
 
 %make a binary object
 im = mat2gray(im);
-I = im;%im(:,:,2);
-T = adaptthresh(I, .85);
-imBin = imbinarize(I, T);
+I = im(:,:,2);
+I(I<.01) = 0;
+%T = adaptthresh(I, .95);
+imBin = imbinarize(I);
 subplot(2,3,2)
 imshow(imBin)
 hold on; 
@@ -60,7 +67,7 @@ plot(B(:,2), B(:,1), 'y', 'LineWidth',2)
 B = B.*pixelSize; 
 
 %for SAM Image - get rid of tail end of grooves
-%B = B(1:(end-500), :);
+B = B(50:(end-500), :);
 
 %subtract off the min value to lower the line
 B(:,2) = B(:,2) - min(B(:,2), [], "all");
@@ -73,8 +80,8 @@ plot(B(:,1), B(:,2), 'k');
 xlabel("(um)");
 ylabel("(um)");
 
-[peaksvals, peaks] = findpeaks(B(:,2), "MinPeakDistance", 30, "MinPeakHeight", 20);
-[valleyvals, valleys] = findpeaks(-B(:,2), "MinPeakDistance", 30, 'MinPeakHeight', -20);
+[peaksvals, peaks] = findpeaks(B(:,2), "MinPeakDistance", 30, "MinPeakHeight", 5);
+[valleyvals, valleys] = findpeaks(-B(:,2), "MinPeakDistance", 30, 'MinPeakHeight', -40);
 
 hold on; 
 plot(B(peaks,1), B(peaks,2), 'or');
@@ -99,7 +106,7 @@ for i = 1:(length(valleys)-1)
     B_section(:,2) = B_section(:,2) - min(B_section(:,2), [], "all");
 
     %get rid of duplicate x values
-    [~,uniquelocs] = unique(B_section(:,1));
+    [~,uniquelocs] = unique( B_section(:,1));
     B_section = B_section(uniquelocs, :);
 
     %interpolate the values for averaging
@@ -134,7 +141,7 @@ title('Average Groove Dimensions');
 axis([0 50 0 30])
 
 
-%add nominal dimensions line
+%% add nominal dimensions line
 r=12.5; %um
 dtheta = .01; 
 x1 = r*cos(-pi/2:dtheta:0); 
