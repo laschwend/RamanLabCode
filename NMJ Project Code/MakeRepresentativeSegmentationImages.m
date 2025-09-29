@@ -44,11 +44,11 @@ fileNames = "11-8-5-LS_20X.nd2";
         elseif i ==3
             indx = [1 2 3 5];
         else
-            indx = 1:length(thick)
+            indx = 1:length(thick);
         end
 
-        thick = thick(indx)
-        thin = thin(indx)
+        thick = thick(indx);
+        thin = thin(indx);
 
         %now add them to the widths 
         thinWidths = [thinWidths, thin'];
@@ -59,19 +59,43 @@ fileNames = "11-8-5-LS_20X.nd2";
 
     figure(1);
     hold on; 
-    histogram(thinWidths, 10);
-    plot([10,10], [0,4], 'k');
-    axis([0, 25 , 0, 4])
+    h = histogram(thinWidths, 10, 'Normalization','probability');
+    plot([10,10], [0,1], 'k');
+    
+    x = 0:.2:25;
+    [gaussianT, meanthin] = getGaussianFit(thinWidths, x);
+    disp(["Thin Mean " num2str(meanthin)]);
+    plot(x,gaussianT, 'g')
+    plot([mean(thinWidths),mean(thinWidths)], [0,1], 'g');
+
+    axis([0, 25 , 0, .5])
     xlabel('w1 (um)')
+    ylabel('Normalized Occurance')
     improvePlot();
+
+    [h,p] = ttest(thinWidths, 10)
 
     figure(2);
     hold on;
-    histogram(thickWidths,10);
-    axis([35, 65 , 0, 4])
-    plot([50,50], [0,4], 'k');
+    histogram(thickWidths,10, 'Normalization','probability');
+
+    x = 35:.2:65;
+    [gaussianT, meanthick] = getGaussianFit(thickWidths, x);
+    disp(["Thick Mean " num2str(meanthick)]);
+    plot(x,gaussianT, 'g')
+    plot([50,50], [0,1], 'k');
+    plot([mean(thickWidths),mean(thickWidths)], [0,1], 'g');
+    axis([35, 65 , 0, .5])
+    
+    
     xlabel('w2 (um)');
+    ylabel('Normalized Occurance')
     improvePlot();
+
+    %run t-test
+    [h,p] = ttest(thickWidths, 50)
+
+
 
 
 
@@ -112,4 +136,16 @@ fileNames = "11-8-5-LS_20X.nd2";
     
     end
 
-end
+    end
+
+
+    %% functions
+
+    function [gaussianF, meanD] = getGaussianFit(data, xindx)
+
+        meanD= mean(data);
+        stdD = std(data);
+
+        gaussianF = normpdf(xindx, meanD, stdD);
+
+    end

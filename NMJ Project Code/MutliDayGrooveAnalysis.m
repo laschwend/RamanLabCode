@@ -111,4 +111,36 @@ SAMGrooves.plotSummaryGroove();
 pbaspect([2 1 1])
 improvePlot();
 
+%% for making the comparison plots over days
+clear; close all;
+load("NMJGrooveAnalysis9_25_25.mat");
+
+figure; 
+Data{1}.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+title("24hrs");
+
+figure; 
+Data{4}.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+title("1 Week");
+
+figure; 
+Data{5}.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+title("0hrs");
+
+%% make an example of the peaks and valleys plot
+clear; close all;
+load("NMJGrooveAnalysis9_25_25.mat");
+
+
+figure; 
+Data{5}.plotPeaksNValleys(20:160)
+pbaspect([3 1 1])
+improvePlot();
+
 

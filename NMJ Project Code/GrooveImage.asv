@@ -194,11 +194,35 @@ classdef GrooveImage
             end
         end
 
+        function [] = plotPeaksNValleys(this, indxRange)
+
+            B = this.boundaryDataMod;
+            
+
+            
+            plot(B(indxRange,1), B(indxRange,2), 'k');
+            xlabel("(um)");
+            ylabel("(um)");
+            hold on; 
+
+            peaksLocIndx = this.peakLocs(this.peakLocs > indxRange(1) & this.peakLocs < indxRange(end));
+            valleyLocIndx = this.valleyLocs(this.peakLocs > indxRange(1) & this.valleyLocs < indxRange(end));
+
+            plot(B(peaksLocIndx,1), B(peaksLocIndx,2), 'or');
+            plot(B(valleyLocIndx, 1), B(valleyLocIndx, 2), 'ob');
+
+
+        end
+
         function [] = plotSummaryGroove(this)
 
             AverageGroove = mean(this.Grooves, 3);
-            maxGroove = max(this.Grooves(:, 2, :), [], 3);
-            minGroove = min(this.Grooves(:, 2, :), [], 3);
+
+            maxGroove = AverageGroove(:,2) + std(this.Grooves(:, 2, :), [], 3);
+            minGroove = AverageGroove(:,2) - std(this.Grooves(:, 2, :), [], 3);
+
+            % maxGroove = max(this.Grooves(:, 2, :), [], 3);
+            % minGroove = min(this.Grooves(:, 2, :), [], 3);
             
             hold on; 
             plot(AverageGroove(:,1), AverageGroove(:,2), '-k');
@@ -225,14 +249,14 @@ classdef GrooveImage
 
             %slide over the characteristic curve for reference
             sig2 = AverageGroove(:,2); 
-            sig1 = interp1([x1 x2 x3], [y1 y2 y3],linspace(0, x3(end), size(sig2,1)), "linear");
+            sig1 = interp1([x1 x2 x3]+5, [y1 y2 y3],linspace(0, x3(end), size(sig2,1)), "linear");
             [sig1y_adjusted, sig2_adjusted, ~] = alignsignals(sig1, sig2', "Method","xcorr");
             sig1x_adjusted = (1:length(sig1y_adjusted)).*r.*4./size(sig2,1);
             
             
             plot(sig1x_adjusted, sig1y_adjusted, '-y', 'LineWidth', 2);
 
-            patch([AverageGroove(:,1) flip(AverageGroove(:,1))], [])
+            patch([AverageGroove(:,1); flip(AverageGroove(:,1))], [minGroove;flip(maxGroove)], [1 1 1]*.8,'FaceAlpha', 0.5, 'EdgeColor', 'none')
             
             legend('Average Groove', 'Maximum value', 'Minimum Value', 'Nominal Dimension');
 

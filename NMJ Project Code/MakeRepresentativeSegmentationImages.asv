@@ -58,15 +58,25 @@ fileNames = "11-8-5-LS_20X.nd2";
     
 
     figure(1);
-    histogram(thinWidths, 10);
-    plot([10,10], [0,4]);
-    axis([0, 25 , 0, 4])
-    xlabel()
+    hold on; 
+    h = histogram(thinWidths, 10, 'Normalization','percentage');
+    plot([10,10], [0,4], 'k');
+    
+    
+
+    axis([0, 25 , 0, 100])
+    xlabel('w1 (um)')
+    improvePlot();
 
     figure(2);
-    histogram(thickWidths,10);
+    hold on;
+    histogram(thickWidths,10, 'Normalization','percentag');
     axis([35, 65 , 0, 4])
-    plot([50,50], [0,4]);
+    plot([50,50], [0,4], 'k');
+    xlabel('w2 (um)');
+    improvePlot();
+
+
 
 
 
@@ -107,4 +117,16 @@ fileNames = "11-8-5-LS_20X.nd2";
     
     end
 
-end
+    end
+
+
+    %% functions
+
+    function [gaussianF, meanD] = getGaussianFit(data, xindx)
+
+        meanD= mean(data);
+        stdD = std(data);
+
+        gaussianF = normpdf(xindx, meanD, stdD);
+
+    end

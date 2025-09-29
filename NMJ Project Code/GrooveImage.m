@@ -194,11 +194,35 @@ classdef GrooveImage
             end
         end
 
+        function [] = plotPeaksNValleys(this, indxRange)
+
+            B = this.boundaryDataMod;
+            
+
+            
+            plot(B(indxRange,1), B(indxRange,2), 'k');
+            xlabel("(um)");
+            ylabel("(um)");
+            hold on; 
+
+            peaksLocIndx = this.peakLocs(this.peakLocs > indxRange(1) & this.peakLocs < indxRange(end));
+            valleyLocIndx = this.valleyLocs(this.valleyLocs > indxRange(1) & this.valleyLocs < indxRange(end));
+
+            plot(B(peaksLocIndx,1), B(peaksLocIndx,2), 'or');
+            plot(B(valleyLocIndx, 1), B(valleyLocIndx, 2), 'ob');
+
+
+        end
+
         function [] = plotSummaryGroove(this)
 
             AverageGroove = mean(this.Grooves, 3);
-            maxGroove = max(this.Grooves(:, 2, :), [], 3);
-            minGroove = min(this.Grooves(:, 2, :), [], 3);
+
+            maxGroove = AverageGroove(:,2) + std(this.Grooves(:, 2, :), [], 3);
+            minGroove = AverageGroove(:,2) - std(this.Grooves(:, 2, :), [], 3);
+
+            % maxGroove = max(this.Grooves(:, 2, :), [], 3);
+            % minGroove = min(this.Grooves(:, 2, :), [], 3);
             
             hold on; 
             plot(AverageGroove(:,1), AverageGroove(:,2), '-k');
