@@ -299,9 +299,12 @@ def alignmentPlot(df, xvalues, yvalues,xlabelv, ylabelv, xlab, ylab, title, pair
     
     
 #%% Plotting Code
-savePath = "C:/Users/laSch\MIT Dropbox/Raman Lab/Laura Schwendeman/NMJ Paper Figure Resources/Fig 2/Fig 3 svg plots/"
-pathName = "C:/Users/laSch/Desktop/Raman Lab/RamanlabCode/NMJ Project Code/"
-saveName = "NMJGroovAnalysis9_25_25.xlsx"
+allLabels = ["D0","D1", "D2", "D6"]
+pairAll = list(itertools.combinations(allLabels, 2))
+
+savePath = "C:/Users/draga/MIT Dropbox/Raman Lab/Laura Schwendeman/NMJ Paper Figure Resources/Fig 2/Fig 3 svg plots/"
+pathName = "C:/Users/draga/Desktop/Code Repo/RamanLabCode/NMJ Project Code/"
+saveName = "NMJGrooveAnalysis9_25_25.xlsx"
 
 titleName = "Groove Height Over Time"
 
@@ -311,21 +314,37 @@ fileName = pathName+saveName
 df = pd.read_excel(fileName, sheet_name = "Sheet1")
 
 
+
 pal = sns.color_palette("husl", 8)
 
-##Grooved vs Ungrooved
+##Groove Height
 xlabelv = "Day in Hydration"
 ylabelv = "Groove Height (um)"
 xvalues = df.Day
 yvalues = df.height
 xlab = "Day"
 ylab = "height"
-pairs = [("D1", "D2"), ("D6", "D2"), ("D6", "D1")]
+pairs = pairAll
 UvG = ""
 ylim = [0, 0]
 
 alignmentPlot(df, xvalues, yvalues,xlabelv, ylabelv, xlab, ylab, titleName, pairs, savePath, UvG, ylim)
 
+
+##GrooveWidth
+df = pd.read_excel(fileName, sheet_name = "Sheet2")
+titleName = "Groove Width Over Time"
+xlabelv = "Day in Hydration"
+ylabelv = "Groove Width (um)"
+xvalues = df.Day
+yvalues = df.width
+xlab = "Day"
+ylab = "width"
+pairs = pairAll
+UvG = ""
+ylim = [0, 0]
+
+alignmentPlot(df, xvalues, yvalues,xlabelv, ylabelv, xlab, ylab, titleName, pairs, savePath, UvG, ylim)
 
 
 
