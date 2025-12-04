@@ -59,13 +59,4 @@ xlabel("C2C12 Cell Diameter (um)");
 mean(cellDiameters)
 improvePlot();
 
-%%
-mydata = readtable(filePath + "125_2_10x_01_results.csv");
 
-myCellDiameters = mydata.Length; 
-
-figure;
-
-histogram(myCellDiameters/6.4*1920*px2um);
-hold on; 
-histogram(cellDiameters);

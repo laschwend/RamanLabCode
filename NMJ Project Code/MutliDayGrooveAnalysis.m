@@ -144,3 +144,16 @@ pbaspect([3 1 1])
 improvePlot();
 
 
+%% count the number of grooves from ea
+
+clear; close all;
+load("NMJGrooveAnalysis9_25_25.mat");
+dayLabel = {"D1", "D1", "D2", "D6", "D0"};
+
+
+for i = 1:length(Data)
+    disp(dayLabel{i} + num2str(size(Data{i}.Grooves)));
+
+end
+
+

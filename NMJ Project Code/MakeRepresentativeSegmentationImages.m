@@ -73,7 +73,9 @@ fileNames = "11-8-5-LS_20X.nd2";
     ylabel('Normalized Occurance')
     improvePlot();
 
-    [h,p] = ttest(thinWidths, 10)
+    [h,p, ~, stats] = ttest(thinWidths, 10)
+    stats
+    legend("Measured Values", "Gaussian Fit", "Measured Mean", "Mold Dimension");
 
     figure(2);
     hold on;
@@ -83,18 +85,21 @@ fileNames = "11-8-5-LS_20X.nd2";
     [gaussianT, meanthick] = getGaussianFit(thickWidths, x);
     disp(["Thick Mean " num2str(meanthick)]);
     plot(x,gaussianT, 'g')
-    plot([50,50], [0,1], 'k');
+    
     plot([mean(thickWidths),mean(thickWidths)], [0,1], 'g');
+    plot([50,50], [0,1], 'k');
     axis([35, 65 , 0, .5])
     
     
     xlabel('w2 (um)');
     ylabel('Normalized Occurance')
     improvePlot();
+    legend("Measured Values", "Gaussian Fit", "Measured Mean", "Mold Dimension");
 
     %run t-test
-    [h,p] = ttest(thickWidths, 50)
-
+    [h,p, ~, stats] = ttest(thickWidths, 50)
+    
+    
 
 
 
