@@ -140,7 +140,7 @@ def addStatAnnot_Tamaras(xlab, ylab, title, pairs, ax, df, displayNS):
             if len(pairs) > 1:
                 # Perform one-way ANOVA
                 f_stat, p_value = stats.f_oneway(*group_data)
-                print(title + " Anova p-value: ", p_value)
+                print(title + " Anova p-value: ", p_value, " f_stat ", f_stat)
                 test = 'ANOVA'
                 if p_value < 0.05:
                     # Perform Tukey's HSD post hoc test
@@ -155,7 +155,7 @@ def addStatAnnot_Tamaras(xlab, ylab, title, pairs, ax, df, displayNS):
                 # Perform Kruskal-Wallis test
                 h_stat, p_value = stats.kruskal(*group_data)
                 test = 'Kruskal-Wallis'
-                print(title + " Kruskal-Wallis p-value: ", p_value)
+                print(title + " Kruskal-Wallis p-value: ", p_value, " h-stat ", h_stat)
                 if p_value < 0.05:
                     # Perform Dunn's post hoc test with Bonferroni correction
                     posthoc = sp.posthoc_dunn(df, val_col=ylab, group_col=xlab, p_adjust='bonferroni')
@@ -208,7 +208,7 @@ def addStatAnnot_Tamaras(xlab, ylab, title, pairs, ax, df, displayNS):
             if len(pairs) > 1:
                 # Perform one-way ANOVA
                 f_stat, p_value = stats.f_oneway(*group_data)
-                print(title + " Anova p-value: ", p_value)
+                print(title + " Anova p-value: ", p_value, " f_stat ", f_stat)
                 test = 'ANOVA'
                 if p_value < 0.05:
                     # Perform Tukey's HSD post hoc test
@@ -223,7 +223,7 @@ def addStatAnnot_Tamaras(xlab, ylab, title, pairs, ax, df, displayNS):
                 # Perform Kruskal-Wallis test
                 h_stat, p_value = stats.kruskal(*group_data)
                 test = 'Kruskal-Wallis'
-                print(title + " Kruskal-Wallis p-value: ", p_value)
+                print(title + " Kruskal-Wallis p-value: ", p_value, " h-stat ", h_stat)
                 if p_value < 0.05:
                     # Perform Dunn's post hoc test with Bonferroni correction
                     posthoc = sp.posthoc_dunn(df, val_col=ylab, group_col=xlab, p_adjust='bonferroni')
@@ -293,7 +293,7 @@ def alignmentPlot(df, xvalues, yvalues,xlabelv, ylabelv, xlab, ylab, title, pair
     
     ax = makeViolinPlot(df, xvalues, yvalues, xlabelv, ylabelv, title, ylim)
     addStatAnnot_Tamaras(xlab, ylab, title, pairs, ax, df, 0)
-    savePlot(path, title,UvG)
+    #savePlot(path, title,UvG)
     
     
     

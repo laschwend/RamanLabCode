@@ -1,0 +1,288 @@
+%Code for processing .nd2 groove files and segmenting them
+clear all; close all; clc;
+
+fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\GelMa D0\B3_r3_D0_20x - Denoised.nd2';
+fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A3_r3_D0_20x - Denoised.nd2';
+fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A2_r2_D0_20x001 - Denoised.nd2';
+reader = BioformatsImage(fileName);
+
+%% make 3D image stack
+
+imageStack = zeros(reader.height, reader.width, reader.sizeZ, 3);
+
+for c = 1:reader.sizeC
+
+    for z = 1:reader.sizeZ
+    
+        imageStack(:,:,z) = getPlane(reader, z, 1, 1);
+    
+    end
+end
+
+%% view a z-plane image
+figure(1);
+imshow(imageStack(:,:,40), [])
+
+
+%% get the directionality angles
+z_level = 50;
+[angles, hist, mean_angle] = directionality_analysis(imageStack(:,:,z_level));
+
+%%
+
+% [angles,hist] = gradient_directionality_histogram(imageStack(:,:,z_level), 90);
+% 
+% figure(2)
+% plot(angles, hist)
+
+%% rotate the image
+%mean_angle = 90;
+im_rotated = imrotate(imageStack(:,:,z_level), -mean_angle);
+figure(5) 
+imshow(im_rotated, [])
+
+%% get an orthoganal view now
+
+%rotate the whole stack
+for zp = 1:reader.sizeZ
+    
+        rot_imageStack(:,:,zp) = imrotate(imageStack(:,:,zp), -mean_angle);
+    
+end
+
+%now take the section in the middle
+ysection = rot_imageStack(:,round(end/2), :);
+ysection = permute(ysection, [1 3 2]);
+
+%get rid of the blank space
+ybound = round((size(ysection, 1) - reader.width)/2);
+ysection_new = ysection((ybound+1):(end-ybound), :);
+
+figure()
+imshow(ysection, [])
+figure()
+imshow(ysection_new, [])
+
+%% segment the orthoganal view with built in Matlab SAM
+%segmented = imsegsam(ysection_new);
+
+%% test some filtering of the image for visualization
+%plot brightness hist
+ysection_new = rescale(ysection_new);
+figure(11); 
+histogram(ysection_new)
+
+h = figure(10)
+imshow(ysection_new)
+imcontrast(h)
+figure(12); 
+J = histeq(ysection_new);
+imshow(J)
+title("histeq")
+figure(13)
+subplot(1,2, 1)
+J = imadjust(ysection_new, [0, .5]); % Adjust range
+imshow(J)
+subplot(1,2,2)
+histogram(J)
+%% just threshold for now
+t = linspace(.1,.2, 9);
+figure()
+for i = 1:length(t)
+    T = adaptthresh(rescale(ysection_new), t(i));
+    binIm = imbinarize(rescale(ysection_new), t(i));
+    subplot(1,length(t), i)
+    imshow(binIm)
+    title(num2str(t(i)))
+end
+
+
+%% 
+figure()
+labelMatrix = labelmatrix(segmented);
+
+maskOverlay = labeloverlay(ysection,labelMatrix);
+imshow(maskOverlay,[])
+
+%%
+%raPsd2d(imageStack(:,:,40), .1)
+
+%% Useful functions
+
+function [angles, histogramCounts] = directionality_fourier(img, nBins)
+
+    if nargin < 2
+        nBins = 90; % match ImageJ default
+    end
+    
+    img = double(img);
+
+    % 1) Compute Fourier transform
+    F = fftshift(fft2(img));
+    P = abs(F).^2; % power spectrum
+
+    % 2) Convert to polar coordinates (radius, angle)
+    [h, w] = size(img);
+    [X, Y] = meshgrid(1:w, 1:h);
+    cx = (w+1)/2;
+    cy = (h+1)/2;
+
+    % angles in degrees
+    anglesImg = atan2(Y - cy, X - cx) * 180/pi;  
+    anglesImg(anglesImg < 0) = anglesImg(anglesImg < 0) + 180; 
+
+    % 3) Build histogram of power per angle
+    angles = linspace(0, 180, nBins+1);
+    histogramCounts = zeros(1, nBins);
+
+    for i = 1:nBins
+        mask = anglesImg >= angles(i) & anglesImg < angles(i+1);
+        histogramCounts(i) = sum(P(mask));
+    end
+
+    % center bin angles
+    angles = angles(1:end-1) + (180/nBins)/2;
+
+end
+
+%claude's function
+function [angles, histogram, meanAngle, stdAngle] = directionality_analysis(img, varargin)
+% DIRECTIONALITY_ANALYSIS - Replicates ImageJ's directionality plugin
+% Uses Fourier components method to analyze directional structures
+%
+% Inputs:
+%   img - 2D grayscale image
+%   Optional parameters (name-value pairs):
+%       'nbins' - Number of histogram bins (default: 90)
+%       'hist_start' - Histogram start angle in degrees (default: -90)
+%       'hist_end' - Histogram end angle in degrees (default: 90)
+%       'show_plot' - Display results plot (default: true)
+%
+% Outputs:
+%   angles - Angle values for histogram bins
+%   histogram - Histogram counts (power at each angle)
+%   meanAngle - Weighted mean direction
+%   stdAngle - Standard deviation of direction
+
+% Parse inputs
+p = inputParser;
+addParameter(p, 'nbins', 90, @isnumeric);
+addParameter(p, 'hist_start', -90, @isnumeric);
+addParameter(p, 'hist_end', 90, @isnumeric);
+addParameter(p, 'show_plot', true, @islogical);
+parse(p, varargin{:});
+
+nbins = p.Results.nbins;
+hist_start = p.Results.hist_start;
+hist_end = p.Results.hist_end;
+show_plot = p.Results.show_plot;
+
+% Convert to double and normalize
+img = double(img);
+if max(img(:)) > 1
+    img = img / max(img(:));
+end
+
+% Get image dimensions
+[rows, cols] = size(img);
+
+% Apply 2D Blackman window (as in ImageJ plugin)
+% This prevents cross artifacts at x=0 and y=0 in FFT
+blackman_window = create_blackman_window_2d(rows, cols);
+img_windowed = img .* blackman_window;
+
+% Compute 2D FFT
+fft_img = fft2(img_windowed);
+fft_img = fftshift(fft_img);
+
+% Get power spectrum
+power_spectrum = abs(fft_img).^2;
+
+% Create coordinate system centered at origin
+[X, Y] = meshgrid(1:cols, 1:rows);
+center_x = cols / 2 + 0.5;
+center_y = rows / 2 + 0.5;
+X = X - center_x;
+Y = Y - center_y;
+
+% Calculate angles (in degrees, -90 to 90)
+theta = atan2d(-Y, X); % Negative Y because image coordinates
+
+% Create histogram bins
+angle_edges = linspace(hist_start, hist_end, nbins + 1);
+angles = (angle_edges(1:end-1) + angle_edges(2:end)) / 2;
+histogram = zeros(1, nbins);
+
+% Accumulate power spectrum values into histogram bins
+for i = 1:nbins
+    % Find pixels in this angular bin
+    mask = (theta >= angle_edges(i)) & (theta < angle_edges(i+1));
+    
+    % Sum power in this direction
+    histogram(i) = sum(power_spectrum(mask));
+end
+
+% Normalize histogram
+histogram = histogram / sum(histogram);
+
+% Calculate weighted mean angle (circular mean)
+% Convert to radians for calculation
+angles_rad = deg2rad(angles);
+sin_sum = sum(histogram .* sin(angles_rad));
+cos_sum = sum(histogram .* cos(angles_rad));
+meanAngle = atan2d(sin_sum, cos_sum);
+
+% Calculate circular standard deviation
+R = sqrt(sin_sum^2 + cos_sum^2);
+stdAngle = sqrt(-2 * log(R)) * 180 / pi;
+
+% Display results
+fprintf('Directionality Analysis Results:\n');
+fprintf('Mean Direction: %.2f degrees\n', meanAngle);
+fprintf('Std Deviation: %.2f degrees\n', stdAngle);
+
+% Plot if requested
+if show_plot
+    figure('Name', 'Directionality Analysis', 'NumberTitle', 'off');
+    
+    subplot(2, 2, 1);
+    imshow(img, []);
+    title('Original Image');
+    
+    subplot(2, 2, 2);
+    imagesc(log(1 + power_spectrum));
+    axis image;
+    colormap(gca, 'hot');
+    title('Power Spectrum (log scale)');
+    
+    subplot(2, 2, [3, 4]);
+    bar(angles, histogram, 'FaceColor', [0.2 0.4 0.8]);
+    xlabel('Direction (degrees)');
+    ylabel('Amount (normalized power)');
+    title(sprintf('Directionality Histogram (Mean: %.2f°)', meanAngle));
+    grid on;
+    xlim([hist_start hist_end]);
+    
+    % Add mean line
+    hold on;
+    yl = ylim;
+    plot([meanAngle meanAngle], yl, 'r--', 'LineWidth', 2);
+    legend('Histogram', 'Mean Direction', 'Location', 'best');
+    hold off;
+end
+
+end
+
+%% Helper functions
+function window_1d = blackman_window(n)
+% Generate 1D Blackman window
+k = 0:(n-1);
+window_1d = 0.42 - 0.5 * cos(2*pi*k/(n-1)) + 0.08 * cos(4*pi*k/(n-1));
+end
+
+function window_2d = create_blackman_window_2d(rows, cols)
+% Generate 2D Blackman window by outer product of 1D windows
+window_row = blackman_window(rows);
+window_col = blackman_window(cols);
+window_2d = window_row' * window_col;
+end

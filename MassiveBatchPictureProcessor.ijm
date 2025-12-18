@@ -35,7 +35,7 @@ function processFile(input, output, file) {
 
 	Ext.getSeriesCount(nSeries);
 	
-	for(s=0; s<nSeries; s++)
+	for(s=1; s<=nSeries; s++)
 	{
 	
 	run("Bio-Formats Importer", "open=["+input + File.separator + file+"] color_mode=Colorized rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + s);
@@ -84,10 +84,15 @@ function processFile(input, output, file) {
 		    //run("Subtract Background...", "rolling=50 light sliding");
 			//run("Smooth");
 		    run("Enhance Contrast", "saturated=0.35");
-		    saveAs("png", output + File.separator + file + "-channel_" + c);
+		    saveAs("png", output + File.separator + file + "-channel_" + c + "_series_" + s);
 		    // Save projection
 		    projected[c] = getTitle(); // Save title to access later
 		    //close("C" + (c+1)); // Close original Z-stack
+		    
+//		    if(c == 0){
+//		    	run("Set Measurements...", "area mean standard min max integrated redirect=None decimal=3");
+//				run("Measure");
+//		    }
 		    
 		}
 		
@@ -96,11 +101,12 @@ function processFile(input, output, file) {
 		run("Merge Channels...", "c1=["+projected[0]+"]" + " c4=["+projected[1]+"]"); // + " c4=["+projected[2] + "]");
 		
 		run("Make Composite");
-	
+		
 		
 		run("RGB Color");
 		
 	}
+    
     
  
 	saveAs("png", output + File.separator + file + "_series " + s);
@@ -108,9 +114,11 @@ function processFile(input, output, file) {
 	
 	}
 	
-	print("Saving to: " + output);
+//	print("Saving to: " + output);
+//	selectWindow("Results");
+//	saveAs("Results", output + File.separator +"results.csv");
 }
 
 //to check for if a file has multiple series x-y locations 
-function
+
 
