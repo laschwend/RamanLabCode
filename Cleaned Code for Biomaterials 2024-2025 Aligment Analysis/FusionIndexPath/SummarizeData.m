@@ -9,21 +9,23 @@ clear all; close all; clc;
 %load("fiberdataH2_1 - Copy.mat");
 C2C12 = 0; 
 
-if C2C12
-    load("fiberdataM2_1 - Copy.mat");
-    replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [7,5,5,8,8]);
-else
-   %load the data you want to look at, human or c2c12
-    load("fiberdataH2_1 - Copy.mat");
-    replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [8,9,5,6,8]);
-end
+% if C2C12
+%     load("fiberdataM2_1 - Copy.mat");
+%     replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [7,5,5,8,8]);
+% else
+%    %load the data you want to look at, human or c2c12
+%     load("fiberdataH2_1 - Copy.mat");
+%     replicateDict = dictionary(["12pt5", "25", "125", "flat", "unstamped"], [8,9,5,6,8]);
+% end
 
+load("FiberData-NMJMuscleOnly2-WidthsCopy.mat")
+replicateDict = dictionary(["RGECO_R3", "WT_R4", "WT_R4NDM"], [5,5,5]);
 numConditions = size(FiberDataStruct,1); 
 numReps = size(FiberDataStruct, 2);
 
 
-
-ConditionsLabel = (["12pt5", "25", "125", "flat", "unstamped"]);
+ConditionsLabel = ( ["RGECO_R3", "WT_R4", "WT_R4NDM"]);
+%ConditionsLabel = (["12pt5", "25", "125", "flat", "unstamped"]);
 
 
 %% plot the average nuclei count/fiber
@@ -69,8 +71,11 @@ else
     fileNameExcel = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\1_3_2025 Sonikas Stamp Analysis Copy\Stamp data analysis\Cook 40x\Cook_Data_Summarized.xlsx";
 end
 
-%for naming each conidion and replicate
+fileNameExcel = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\2_13_24 Fliped 40x Muscle only experiment confocal\FusionIndexData.xlsx";
+
+%for naming each condition and replicate
 Conditions = {"12.5", "25", "125", "flat", "unstamped"};
+Conditions = {"RGECO_R3", "WT_R4", "WT_R4NDM"};
 
 FusionData = {"FusionIndex", "StampCondition", "Replicate", "Category"};
 

@@ -11,7 +11,8 @@ filename = '11-8-3-LS_20X.nd2'
 filepath = 'C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\7_2_2025 fluobead test 4 - after pictures\20x_Fluotest4_after_B2_10um.nd2'
 fileName = filepath;% + filename; 
 
-
+filepath = 'C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\11_4_25 assembled 11-8-3 nmj stamps\11_5_25 Fibrin Staining\10X_S4_grooves_fibrin_11_5_microwell.nd2';
+fileName = filepath;
 reader = BioformatsImage(fileName);
 
 %% make 3D image stack
@@ -30,7 +31,7 @@ end
 %% view the final image
 alphaMap = linspace(0, 1, 256);
 alphaMap(1:75)= 0;
-volshow(imageStack, "Alphamap",alphaMap)
+viewer = volshow(imageStack, "Alphamap",alphaMap);
 
 
 %% playing with image crop

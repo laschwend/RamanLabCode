@@ -26,27 +26,36 @@ end
 %conditionNumbersKey = repelem(conditionNumbersKey, length(replicates));
 
 %variables for storing info
-load('fiberdataH2_1.mat');
+load('fiberdata_NMJMuscleOnly2_nowidthsforextra.mat');
+conditionNumbersKey = [3]; %for nmj muscle 
+replicates = [2 3];
 
 counterVar = 1;
-for cIndx = conditions
+for cIndx = conditionNumbersKey
 
-       conditionNum = conditionNumbersKey(counterVar);
-       replicates = 1:replicateDict(cIndx);
+       conditionNum = cIndx;%conditionNumbersKey(counterVar);
+       %replicates = 1:replicateDict(cIndx);
 
     for rIndx = replicates
-        ImageData = FiberDataStruct{conditionNumbersKey(counterVar), rIndx};
 
-        ImageData.PictureName = cIndx + "_" + num2str(rIndx);
+        
+        ImageData = FiberDataStruct{cIndx, rIndx};
+
+        %keep going if the wasn't any data logged
+        if isempty(ImageData)
+            continue
+        end
+
+        %ImageData.PictureName = cIndx + "_" + num2str(rIndx);
 
          %percent of overlap to include the nucleus inside a given fiber
-        overlapThreshold = 0.5; 
+        %overlapThreshold = 0.5; 
         
         %get the fiber label picture
         labelsF = ImageData.muscleLabels; 
         labelsF = bwlabel(labelsF~=0);
 
-        %make a matrix to store info if a given numbered nucleus is in a fiber
+        %make a matrix for the measured widths
         numFibers = max(labelsF, [], 'all');      
         FiberWidthLog = cell(numFibers,1);
         
@@ -72,7 +81,7 @@ end
 
 %% save the updated fiberDataStructure
 
-save('fiberdataH2_1 - Copy.mat', 'FiberDataStruct');
+save('fiberdata_NMJMuscleOnly2_widthsforextra.mat', 'FiberDataStruct');
 
 %% functions 
 % this is the best way I found to get width measurements

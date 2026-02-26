@@ -4,15 +4,29 @@
 %date: 6-23-2024
 close all; clc; clear; set(0,'DefaultFigureVisible','on');
 %declare relevant variables
-dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240530 alignment 6 good IF\40x pancakes\"; %change directory as needed
-conditions = ["12pt5", "25", "62pt5", "125", "flat", "unstamped"]; %the order matters
-conditionNumbersKey = [1:6];%for tagging the conditions in the structure order and not repeating 1 - 12.5, 2- 25, 3- 62.5, 4-125, 5-flat, 6-unstamped
-replicates = 1:3; %should be able to index specific replicates this way, can increase the number
+%for alignment study
+% dirLocation = "C:\Users\laSch\Dropbox (MIT)\Raman Lab\Laura Schwendeman\20240530 alignment 6 good IF\40x pancakes\"; %change directory as needed
+% conditions = ["12pt5", "25", "62pt5", "125", "flat", "unstamped"]; %the order matters
+% conditionNumbersKey = [1:6];%for tagging the conditions in the structure order and not repeating 1 - 12.5, 2- 25, 3- 62.5, 4-125, 5-flat, 6-unstamped
+% replicates = 1:3; %should be able to index specific replicates this way, can increase the number
+
+%for NMJ Paper - muscle only study
+dirLocationM = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\2_13_24 Fliped 40x Muscle only experiment confocal\muscle_stained\segmentation\"; %change directory as needed
+dirLocationN = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\2_13_24 Fliped 40x Muscle only experiment confocal\";
+conditions = ["RGECO_R3", "WT_R4", "WT_R4NDM"]; %the order matters
+conditionNumbersKey = [3];%for tagging the conditions in the structure order and not repeating 1 - Rgeco, 2 - WTr4, 
+replicates = [2, 3]; %should be able to index specific replicates this way, can increase the number
+replicateKey = {"p1_B5", "p1_C2", "p1_C3", "p1_C4", "p1_C5"; ...
+    "p2_B2", "p2_B3", "p2_B4", "p2_B5", "p2_C2";...
+    "p1_B2", "p1_B4", "p2_C3", "p2_C4", "p2_C5"};
+skipConditions = [1,1;2,1; 2,2; 2,3;2,4];%[1,1; 1,2; 1,3; 1,4; 1,5; 2,1; 2,2; 2,3;2,4];
+
+
 
 conditionNumbersKey = repelem(conditionNumbersKey, length(replicates));
 
 %variables for storing info
-load('fiberdata.mat');
+load('FiberData-NMJMuscleOnly2-WidthsCopy2.mat');
 numImages = length(conditions)*length(replicates);
 ImFlorData.fusionIndex = zeros(numImages, 1); 
 ImFlorData.fiberNucleiLog = cell(numImages,1);
@@ -26,16 +40,24 @@ ImFlorData.fiberWidths = cell(numImages, 1);
 %for cellpose stuff - pretrained nuclei segmentation model
 cp = cellpose(Model="nuclei");
 
-%loop through all the different images
+%% loop through all the different images
 counterVar = 1; 
-for cIndx = conditions
+for cIndx = conditionNumbersKey
     for rIndx = replicates
-        
-ImFlorData.PictureName = cIndx + "_" + num2str(rIndx);
+
+    %conditions to skip for now 
+    if any(cIndx == skipConditions(:,1)) && any(rIndx == skipConditions(:,2))
+        continue
+    end
+ImFlorData.PictureName = conditions(cIndx) + "_" + num2str(rIndx);
 
 %open the nuclei image
-fileNameN = dirLocation + cIndx +"_rep" + num2str(rIndx) + "_40x_pancake_nuclei.jpg";
-fileNameM = dirLocation + cIndx +"_rep" + num2str(rIndx) + "_40x_pancake_fibers.tiff";    
+% fileNameN = dirLocation + cIndx +"_rep" + num2str(rIndx) + "_40x_pancake_nuclei.jpg";
+% fileNameM = dirLocation + cIndx +"_rep" + num2str(rIndx) + "_40x_pancake_fibers.tiff";    
+
+%for the NMJ 2_24_26 revisions
+fileNameM = dirLocationM + "40x_fliped_D14_stain_" + conditions(cIndx) + "_" + replicateKey(cIndx, rIndx) + ".nd2-channel_1_Simple Segmentation.tiff";
+fileNameN = dirLocationN + "40x_fliped_D14_stain_" + conditions(cIndx) + "_" + replicateKey(cIndx, rIndx) + ".nd2-channel_0.png";
 
 imageN = imread(fileNameN);
 imageN = im2gray(imageN);
@@ -67,28 +89,39 @@ imageF = imageF(:,:,1:3);
 figure(3); 
 imshow(imageF);
 
-%get rid of the white outlines
-whitePixels = (~(imageF(:,:,1) == 253 | imageF(:,:,1) == 227 | imageF(:,:,1) == 254) | imageF(:,:,3) > 100);
-for i = 1:3
-    whitePixelsFull(:,:,i) = whitePixels;
-end
+% %get rid of the white outlines
+% whitePixels = (~(imageF(:,:,1) == 253 | imageF(:,:,1) == 227 | imageF(:,:,1) == 254) | imageF(:,:,3) > 100);
+% for i = 1:3
+%     whitePixelsFull(:,:,i) = whitePixels;
+% end
+% 
+% imageF(whitePixelsFull) = 0;
 
-imageF(whitePixelsFull) = 0;
 
-
-figure(4); 
-imshow(imageF);
+% figure(4); 
+% imshow(imageF);
 
 %binarize and then find the objects
 imageF = imbinarize(rgb2gray(imageF), "global");
-imageF = bwareafilt(imageF, [30,inf]);
+SE = strel('disk',5);
+imageF = bwareafilt(imageF, [3000,inf]);
+imageF = imfill(imageF, "holes");
+imageF = imopen(imageF, SE);
+imageF = bwareafilt(imageF, [3000,inf]);
+
+
+%imageF = bwareafilt(imageF, [2000,inf]);
+
+
+%imageF = imclose(imageF, SE);
 
 figure(5); 
 imshow(imageF);
 
 %get all the fibers with labels
 labelsF = bwlabel(imageF);
-
+figure(6);
+imshow(label2rgb(labelsF, 'colorcube'));
 figure(6); 
 imshow(labeloverlay(label2rgb(labelsF, 'colorcube'), labels))
 
@@ -166,12 +199,12 @@ ImFlorData.NucleiAreas = stats.Area;
 
 %ImFlorData.fiberWidths = FiberWidthLog; 
 
-FiberDataStruct{conditionNumbersKey(counterVar),rIndx} = ImFlorData;
+FiberDataStruct{cIndx,rIndx} = ImFlorData;
 
-counterVar = counterVar + 1; 
+%counterVar = counterVar + 1; 
 disp(cIndx + " " + num2str(rIndx));  
 
-save('fiberdata.mat', 'FiberDataStruct');
+save('fiberdata_NMJMuscleOnly2_nowidthsforextra.mat', 'FiberDataStruct');
 
 
     end
@@ -329,3 +362,8 @@ function [longestPixCount] = getLongestPixCount(mappedLine)
 
 end
 
+%function that filters the muscle fiber image
+function [filteredFibers] = filterFiberImage(FiberImage)
+
+    
+end
