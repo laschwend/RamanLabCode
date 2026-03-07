@@ -31,9 +31,19 @@ fileNames = {"20x_#1_B1_Channel_center", "20x_#3_B3_Channel_center", "20x_#4_B4_
 folderDir = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\9_12_25 Leak Test Images NMJ\";
 fileNames = {"BeforeTest_1channel2", "BeforeTest_1channel3", "BeforeLeakTest1channels#3_1"};
 
+%for 11-9-3 channel images from 2/26/26
+folderDir = "C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\2_25_26 11-9-3 D0 Stamping GelMa\";
+filesNames = {};
+numSeries = 17;
+baseName = "20x_channelImages_D0_11_9_3_nicerep002 - Denoised.nd2_series ";
+
+for i = 1:numSeries
+    fileNames{i} = baseName + num2str(i);
+end
+
 AnalysisLayer = 1;
 
-dataStructSaveName = "11_8_3_Channels_9_12_25_3.mat";
+dataStructSaveName = "11_9_3_Channels_2_26_26.mat";
 
 %% load the datastruct to save to if already available
 try 
@@ -53,14 +63,17 @@ thinChannelDimensions = zeros(length(fileNames), 1);
 for f = 1:length(fileNames)
 
     %get image Stack
-    file = convertStringsToChars( folderDir + fileNames{f} + ".nd2");
-    reader =  BioformatsImage(file);
+    file = convertStringsToChars( folderDir + fileNames{f} + ".png");
+    % reader =  BioformatsImage(file);
+    % 
+    % imageStack = makeImageStack(reader, 1);
+    % 
+    % %Now get a filtered version of the stack
+    % filteredStack = filterTheStack(imageStack, reader);
+    filteredStack = imread(file);
+    filteredStack = rgb2gray(filteredStack);
 
-    imageStack = makeImageStack(reader, 1);
-
-    %Now get a filtered version of the stack
-    filteredStack = filterTheStack(imageStack, reader);
-
+    
 
     %show a 3D volume version of the filtered stack
     % figure(1)
@@ -79,8 +92,10 @@ for f = 1:length(fileNames)
         old_rectt_thin = imageParam.thinRectt{f}; 
     end
 
-    AnalysisLayer = floor(reader.sizeZ/2)+3;
-
+   % AnalysisLayer = floor(reader.sizeZ/2)+3;
+   AnalysisLayer = 1; 
+   reader = 883.88/1024;
+    imageStack = filteredStack;
     %now get the value of the widechannel
     [wideChannelDimensions(f), imageParam.wideRectt{f}] = getChannelWidth(imageStack, AnalysisLayer, reader, "Large Width", newFile, old_rectt_wide); 
 
@@ -171,7 +186,7 @@ function [channelAveWidth, rectt] = getChannelWidth(imageStack, layerHeight, rea
 
     measures = altWidthMeasure(~J_bin);
 
-    channelAveWidth =  reader.pxSize(1)*mean(measures);
+    channelAveWidth =  mean(measures)*reader;%reader.pxSize(1)*mean(measures);
     
 
 end

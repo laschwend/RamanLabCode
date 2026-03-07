@@ -1,18 +1,23 @@
 %Laura Schwendeman 
 %7/28/2025
 %Purpose: to open image files and make 3D renders of them
-
+clear; close all; clc
 %first open the .nd2 file
 
 filepath = 'C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\7_25_25 leak test r1 - 11-8-345\11-8-3-LS_20X.nd2';
 filename = '11-8-3_AB_channel_20x.nd2';
-filename = '11-8-3-LS_20X.nd2'
+filename = '11-8-3-LS_20X.nd2';
 
 filepath = 'C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\7_2_2025 fluobead test 4 - after pictures\20x_Fluotest4_after_B2_10um.nd2'
 fileName = filepath;% + filename; 
 
-filepath = 'C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\11_4_25 assembled 11-8-3 nmj stamps\11_5_25 Fibrin Staining\10X_S4_grooves_fibrin_11_5_microwell.nd2';
+%%fibrin vs gelma visualization
+filepath = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_4_25 assembled 11-8-3 nmj stamps\11_5_25 Fibrin Staining\4X_fibrin.nd2';
 fileName = filepath;
+
+filepath = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_4_25 assembled 11-8-3 nmj stamps\11_5_25 GelMA\4X_GelMA_GFP.nd2';
+fileName = filepath;
+
 reader = BioformatsImage(fileName);
 
 %% make 3D image stack
@@ -24,14 +29,59 @@ for c = 1:reader.sizeC
     for z = 1:reader.sizeZ
     
         imageStack(:,:,z, c) = getPlane(reader, z, 1, 1);
-    
+       
     end
+
+     imageStack(:,:,:, c) = imgaussfilt3(imageStack(:,:,:, c), [0.6 0.6 1.2]);
+     
 end
 
+%% scale the image
+data = bfopen(fileName);
+
+omeMeta = data{1,4};
+
+% Extract voxel sizes (in microns)
+px = omeMeta.getPixelsPhysicalSizeX(0);
+py = omeMeta.getPixelsPhysicalSizeY(0);
+pz = omeMeta.getPixelsPhysicalSizeZ(0);
+
+% Convert to numeric (microns)
+dx = px.value().doubleValue();
+dy = py.value().doubleValue();
+dz = pz.value().doubleValue();
+
+A = [dx 0 0 0; 0 dy 0 0; 0 0 dz 0; 0 0 0 1];
+tform = affinetform3d(A);
+
+%% filter the image
+
 %% view the final image
-alphaMap = linspace(0, 1, 256);
-alphaMap(1:75)= 0;
-viewer = volshow(imageStack, "Alphamap",alphaMap);
+viewer = viewer3d(BackgroundColor="white", ...
+   GradientColor=[1 1 1], Lighting="off"); 
+
+x = linspace(0,1,256);
+alphaMap = 1 ./ (1 + exp(-20*(x-0.4)));
+alphaMap(1:30)= 0;
+
+imageStack = mat2gray(imageStack);
+viewer2 = volshow(imageStack,"Parent", viewer,  "Alphamap",alphaMap, Transformation = tform);
+% 
+% %add a scale bar
+% scaleBarLength = 1000; 
+% hold(viewer2.Parent, "on")
+% 
+% % Choose location near bottom of volume
+% x0 = 5 * dx;
+% y0 = 5 * dy;
+% z0 = 5 * dz;
+% 
+% line(viewer2.Parent, ...
+%     [x0 x0+scaleBarLength], ...
+%     [y0 y0], ...
+%     [z0 z0], ...
+%     "Color", "w", ...
+%     "LineWidth", 4);
 
 
 %% playing with image crop

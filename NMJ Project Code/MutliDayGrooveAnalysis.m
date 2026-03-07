@@ -44,6 +44,25 @@ cutoff1 = [400, 1000, 1250, 400, 300];
 cutoff2 = [40, 250, 40, 40, 10];
 pixelSize = 883.88/1024;%um
 
+%% for 11-4-25 grooves in fibrin, analyzed 3/6/2026
+DropboxPath = "C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_4_25 assembled 11-8-3 nmj stamps\11_5_25 Fibrin Staining\3_6_26GrooveBinarizedImages\"; 
+fileNames = {"rep1.png", "rep2.png", "rep3.png", "rep4.png", "20x_#7_C1_region1_denoised - 512_D1_SAM.png", "20x_#7_C1_region2_denoised_D1_SAM.png"};
+dayLabel = {"Fibrin", "Fibrin", "Fibrin", "Fibrin", "GelMa", "GelMa"};
+
+%peak parameters
+peakDist = [40, 40, 40, 40, 40,40]; 
+peakHeight = [5 5 15 5, 5, 5];
+valleyHeight = [-70 -40 -15 -40 -70, -40];
+
+
+%Universal parameters
+cutoff1 = [600, 600, 1300, 400, 400, 1000]; 
+cutoff2 = [200, 200, 400, 40, 40, 250];
+pixelSize = 883.88/1024;%um
+saveName = 'NMJGrooveAnalysis3_6_26.mat';
+excelName = 'NMJGrooveAnalysisCompareFibrinGelma3_6_26_3.xlsx';
+
+%%
 %Data saving variable
 Data = cell(size(fileNames));
 
@@ -60,7 +79,8 @@ summaryDataw{1,1} = "Day";
 summaryDataw{1,2} = "width";
 
 
-for i = [length(fileNames), 1:(length(fileNames)-1)]
+for i = [1:(length(fileNames))]
+%for i = [1 2 3 5 6]
     close all; 
      
     grooveStudy = GrooveImage(DropboxPath, fileNames{i}, pixelSize, .95, peakDist(i), peakHeight(i), valleyHeight(i), cutoff1(i), cutoff2(i));

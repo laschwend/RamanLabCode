@@ -64,7 +64,11 @@ classdef GrooveImage
                 
                 im = this.getRawIm();
                 im = mat2gray(im);
-                I = im(:,:,2);
+                try
+                    I = im(:,:,2);
+                catch
+                    I = im(:,:,1);
+                end
                 I(I<.01) = 0;
                 %T = adaptthresh(I, this.thresholdVal);
                 imBin = imbinarize(I);
