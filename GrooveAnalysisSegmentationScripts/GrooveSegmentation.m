@@ -2,8 +2,8 @@
 clear all; close all; clc;
 
 fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\GelMa D0\B3_r3_D0_20x - Denoised.nd2';
-fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A3_r3_D0_20x - Denoised.nd2';
-fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A2_r2_D0_20x001 - Denoised.nd2';
+%fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A3_r3_D0_20x - Denoised.nd2';
+%fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A2_r2_D0_20x001 - Denoised.nd2';
 reader = BioformatsImage(fileName);
 
 %% make 3D image stack
@@ -37,7 +37,7 @@ z_level = 50;
 
 %% rotate the image
 %mean_angle = 90;
-im_rotated = imrotate(imageStack(:,:,z_level), -mean_angle);
+im_rotated = imrotate(imageStack(:,:,z_level), mean_angle);
 figure(5) 
 imshow(im_rotated, [])
 
@@ -46,7 +46,7 @@ imshow(im_rotated, [])
 %rotate the whole stack
 for zp = 1:reader.sizeZ
     
-        rot_imageStack(:,:,zp) = imrotate(imageStack(:,:,zp), -mean_angle);
+        rot_imageStack(:,:,zp) = imrotate(imageStack(:,:,zp), mean_angle);
     
 end
 

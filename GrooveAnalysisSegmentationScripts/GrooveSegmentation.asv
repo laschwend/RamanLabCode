@@ -2,8 +2,8 @@
 clear all; close all; clc;
 
 fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\GelMa D0\B3_r3_D0_20x - Denoised.nd2';
-fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A3_r3_D0_20x - Denoised.nd2';
-fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A2_r2_D0_20x001 - Denoised.nd2';
+%fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A3_r3_D0_20x - Denoised.nd2';
+%fileName = 'C:\Users\draga\MIT Dropbox\Raman Lab\Laura Schwendeman\11_17_25 Maheera GelMa Fibrin Comparision\Fibrin D0\A2_r2_D0_20x001 - Denoised.nd2';
 reader = BioformatsImage(fileName);
 
 %% make 3D image stack
@@ -37,7 +37,7 @@ z_level = 50;
 
 %% rotate the image
 %mean_angle = 90;
-im_rotated = imrotate(imageStack(:,:,z_level), 90mean_angle);
+im_rotated = imrotate(imageStack(:,:,z_level), mean_angle);
 figure(5) 
 imshow(im_rotated, [])
 
@@ -66,6 +66,25 @@ imshow(ysection_new, [])
 %% segment the orthoganal view with built in Matlab SAM
 %segmented = imsegsam(ysection_new);
 
+%% test some filtering of the image for visualization
+%plot brightness hist
+ysection_new = rescale(ysection_new);
+figure(11); 
+histogram(ysection_new)
+
+h = figure(10)
+imshow(ysection_new)
+imcontrast(h)
+figure(12); 
+J = histeq(ysection_new);
+imshow(J)
+title("histeq")
+figure(13)
+subplot(1,2, 1)
+J = imadjust(ysection_new, [0, .5]); % Adjust range
+imshow(J)
+subplot(1,2,2)
+histogram(J)
 %% just threshold for now
 t = linspace(.1,.2, 9);
 figure()
