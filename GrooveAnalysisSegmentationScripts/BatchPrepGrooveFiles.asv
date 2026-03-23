@@ -6,8 +6,8 @@
 %widths and boundaries)
 clc; clear; close all; 
 %% save info
-ogcrossSectionLoc = "OriginalCrossSection/"; 
-segmentedLoc = "SegmentedCrossSection_3_17_26/";
+ogcrossSectionLoc = "OriginalCrossSection\"; 
+segmentedLoc = "SegmentedCrossSection_3_17_26\";
 dataSaveName = "3_17_36_MaheeraGrooveAnalysis.mat";
 
 %% filenames
@@ -39,10 +39,10 @@ end
 
 
 
-%% loop through and generate all of the cross sections and save them
+%% loop through and generate all of the cross sections and save them and the angles to rotate by
  
 f = 51; 
-for i = 1:2%length(fileNameData)
+for i = 1:length(fileNameData)
     
     file = fileNameData{i};
     fileName = fullfile(file.folder, file.name);
@@ -113,23 +113,192 @@ for i = 1:2%length(fileNameData)
     %save the picture
     fileNameData{i}.rawSection = ysection_new';
     picName = makeImageName(fileName);
-    imwrite(ysection_new, picName+'.png');
+    imwrite(ysection_new, ogcrossSectionLoc+picName+'.png');
 
 end
 
 save(dataSaveName,'fileNameData')
 %% Loop through each cross section and then pull up the image Segmenter and save the mask
 
+load(dataSaveName); 
+f = 1;
+for i = 1:length(fileNameData)
 
-%% show all of the masks vs their original image
+    img = getRotatedImageFromFile(fileNameData{i});
+
+    n =10;
+    if mod(i-1,n) == 0
+       fig = figure(f);
+        f = f+1; 
+    else 
+        figure(fig)
+    end
+    q = mod(i-1, n);
+    c = 2*(q);
+    subplot(n, 2, c+1);
+    imshow(img./max(img,[],'all'),[])
+    title(fileNameData{i}.name)
+    %mask = runSAMSegmentation(img);
+    %mask = runThresholdSegmentation(img, 0.3);
+    %mask = runAdaptiveSegementation(img, .15);
+    mask = runGlobalSegmentation(img,.2);
+    
+    img2 = uint8(   img./max(img,[],'all')*255);
+    
+    subplot(n, 2, c+2);
+    imshow(labeloverlay(img2, mask*2))
+    
+    fileNameData{i}.mask = mask; 
+
+end
+
+%% save mask figures + the fileNameData
 
 
 
+%% figure saving functions
+%from claude haiku 4.5
+function save_all_figures(foldername)
+    % Save all open figures as PNG files in a specified folder
+    % Usage: save_all_figures('my_folder')
+    
+    % Create folder if it doesn't exist
+    if ~isfolder(foldername)
+        mkdir(foldername);
+    end
+    
+    % Get all figure handles
+    figures = findall(0, 'type', 'figure');
+    
+    % Check if any figures are open
+    if isempty(figures)
+        warning('No open figures found');
+        return;
+    end
+    
+    % Loop through each figure and save
+    for i = 1:length(figures)
+        fig = figures(i);
+        
+        % Create filename using figure number
+        filename = fullfile(foldername, sprintf('figure_%d.png', fig.Number));
+        
+        % Save as PNG
+        saveas(fig, filename);
+        
+        fprintf('Saved: %s\n', filename);
+    end
+    
+    fprintf('\nTotal figures saved: %d\n', length(figures));
+end
+
+%% Segmentation Functions
+function [thresMask] = runAdaptiveSegementation(img, thres)
+     thresMask = adaptthresh(rescale(img), thres, 'NeighborhoodSize',11);
+     figure()
+     imshow(thresMask,[])
+     thresMask = thresMask > thres; 
+end
+
+function [thresMask] = runThresholdSegmentation(img, thres)
+    thresMask = imbinarize(rescale(img), 'global',thres);
+end
+function [thresMask] = runGlobalSegmentation(img, thres)
+    thresMask = rescale(img) >thres; 
+end
+function [SAMMask] = runSAMSegmentation(img)
+     % Open Image Segmenter app with the image
+    % Load SAM model
+    
+    % If no points provided, let user click
+    if nargin < 2 || isempty(points)
+        fig = figure('Name', 'SAM Segmentation - forground click points', 'NumberTitle', 'off');
+        imshow(img, []);
+        title('Click on foreground objects to segment (press ENTER when done)');
+        
+        [x, y] = getpts(gca); % User clicks points
+        points = [x, y];
+        close(fig);
+
+        fig = figure('Name', 'SAM Segmentation - background click points', 'NumberTitle', 'off');
+        imshow(img, []);
+        title('Click on background objects to segment (press ENTER when done)');
+        
+        [x, y] = getpts(gca); % User clicks points
+        points2 = [x, y];
+        close(fig);
+        
+        if isempty(points)
+            warning('No points selected');
+            SAMMask = [];
+            return;
+        end
+    end
+    
+    % Segment using SAM
+    try
+      
+        sam = segmentAnythingModel;
+        
+        embeddings = extractEmbeddings(sam,img);
+        imageSize = size(img);
+        masks = segmentObjectsFromEmbeddings(sam,embeddings,imageSize, ...
+    ForegroundPoints=points,BackgroundPoints=points2);
+        SAMMask = masks;
+        
+    catch ME
+        disp('Error during segmentation: ' + string(ME.message));
+        SAMMask = [];
+        return;
+    end
+
+end 
 %% helpful functions
+
+%a function for getting the rotated cross section from the original file
+%object if the angle is already provided (breaks if not provided)
+function [img] = getRotatedImageFromFile(file)
+    
+    fileName = fullfile(file.folder, file.name);
+    
+    %open the .nd2 file
+    reader = BioformatsImage(fileName);
+
+    % make 3D image stack
+    imageStack = zeros(reader.height, reader.width, reader.sizeZ, 3);
+    
+    for c = 1:reader.sizeC
+        for z = 1:reader.sizeZ
+            imageStack(:,:,z) = getPlane(reader, z, 1, 1);
+        end
+    end
+    
+    %get the directionality
+    mean_angle = file.angle;
+
+     %section the image
+    rot_imageStack = [];
+    for zp = 1:reader.sizeZ
+        rot_imageStack(:,:,zp) = imrotate(imageStack(:,:,zp), mean_angle);
+    end
+
+    %now take the section in the middle
+    ysection = rot_imageStack(:,round(end/2), :);
+    ysection = permute(ysection, [1 3 2]);
+    
+    %get rid of the blank space
+    ybound = round((size(ysection, 1) - reader.width)/2);
+    ysection_new = ysection((ybound+1):(end-ybound), :);
+
+    %plot the cross section image
+    img = ysection_new';
+    
+end
+
 function [imName] = makeImageName(fileName)
     splits = split(fileName, '\');
 
-    imName = splits(end-2) + splits(end-1) + splits(end);
+    imName = splits{end-2}+ "_" + splits(end-1) + "_" + splits(end);
 end
 
 function [filteredFilenames] = filterFilesName(files, subString)

@@ -1,0 +1,194 @@
+%Author: Laura Schwendeman 
+%Date: 3/23/2026
+%Purpose: To process and plot groove dimensions across multiple conditions
+%- for maheera's analysis
+
+close all; clear all; 
+
+% %practice: 
+% 
+% filefolder  = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper Figure Resources\Fig 2\Longevity Study 9_18_25 Segmented Images";
+% filename = "SAM - NMJ Gels 9_18_25 D1 Grooves YZ 582.png";
+% %filename = "NMJ Gels 9_18_25 D1 Grooves YZ 582.png";
+% 
+% pixelSize = 79.41/92; %um
+% pixelSize = 883.88/1024;%um
+% 
+% SAMD1 = GrooveImage(filefolder, filename, pixelSize, .95, 40, 5, -40, 100);
+% 
+% SAMD1.plotResults()
+
+
+
+
+%% Code Declarations
+saveName = 'GrooveAnalysisM3_23_25.mat';
+excelName = 'GrooveAnalysisM3_23_25.xlsx';
+
+%file path notes
+dataSaveName = "3_17_36_MaheeraGrooveAnalysis.mat";
+load(dataSaveName); 
+[dayLabel{[9:13, 29:31, 42:44]}] = deal("D2");
+[dayLabel{[14:19, 32:34, 45:47]}] = deal("D4");
+[dayLabel{[20:25, 35:37, 48:50]}] = deal("D6");
+
+[GelLabel{[1:16,21:22]}] = deal("G10");
+[GelLabel{[17:20, 23:25]}] = deal("G5");
+[GelLabel{[38:50]}] = deal("G7pt5");
+[GelLabel{[26:37]}] = deal("Fibrin");
+
+%peak parameters
+peakDist = [40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40]/40*30;
+
+peakHeight = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, ...
+         5, 5, 5, 5, 5, 5, 5, 5, 5, 5, ...
+         5, 5, 5, 5, 5, 5, 5, 5, 5, 5, ...
+         5, 5, 5, 5, 5, 5, 5, 5, 5, 5, ...
+         5, 5, 5, 5, 5, 5, 5, 5, 5, 5]/5*15;
+
+valleyHeight = [-15, -15, -15, -15, -15, -15, -15, -15, -15, -15, ...
+             -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, ...
+             -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, ...
+             -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, ...
+             -15, -15, -15, -15, -15, -15, -15, -15, -15, -15]/15*25;
+
+
+%Universal parameters
+cutoff1 = [600, 600, 600, 600, 600, 600, 600, 600, 600, 600, ...
+           600, 600, 600, 600, 600, 600, 600, 600, 600, 600, ...
+           600, 600, 600, 600, 600, 600, 600, 600, 600, 600, ...
+           600, 600, 600, 600, 600, 600, 600, 600, 600, 600, ...
+           600, 600, 600, 600, 600, 600, 600, 600, 600, 600]*2; 
+
+cutoff2 = [40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40, ...
+       40, 40, 40, 40, 40, 40, 40, 40, 40, 40];
+
+pixelSize = 883.88/1024;%um
+
+
+%%
+%Data saving variable
+Data = cell(size(fileNameData));
+
+
+%% now loop throught all of the pictures
+
+
+summaryDatah = cell(1, 2);
+summaryDatah{1,1} = "Day";
+summaryDatah{1,2} = "Gel";
+summaryDatah{1,3} = "height";
+
+summaryDataw = cell(1, 2);
+summaryDataw{1,1} = "Day";
+summaryDatah{1,2} = "Gel";
+summaryDataw{1,3} = "width";
+
+
+for i = [2:(length(fileNameData))]
+%for i = [1 2 3 5 6]
+    close all; 
+     image = flipud(fileNameData{i}.mask); 
+    grooveStudy = GrooveImage([fileNameData{i}.name + GelLabel{i} + dayLabel{i}], image, pixelSize, .95, peakDist(i), peakHeight(i), valleyHeight(i), cutoff1(i), cutoff2(i));
+    grooveStudy.plotResults(); 
+    Data{i} = grooveStudy;
+
+    heights = grooveStudy.getHeightAve();
+    widths = grooveStudy.getWidthAve();
+
+    for h = 1:length(heights)
+        summaryDatah{end+1,1} = dayLabel{i};
+        summaryDatah{end+1,2} = gelLabel{i};
+        summaryDatah{end,3} = heights(h);
+    end
+
+    for w = 1:length(widths)
+        summaryDataw{end+1,1} = dayLabel{i};
+        summaryDataw{end+1,2} = gelLabel{i};
+        summaryDataw{end,3} = widths(w);
+    end
+    
+
+end
+
+%save the data
+save(saveName, "Data");
+
+
+%% save an excel with summary data
+
+    sheetStr = 'Sheet1';
+    writecell(summaryDatah, excelName, 'Sheet', sheetStr, 'Range', 'A1');
+    sheetStr = 'Sheet2';
+    writecell(summaryDataw, excelName, 'Sheet', sheetStr, 'Range', 'A1');
+
+
+%% Make the comparison plot
+close all; 
+filefolder  = "C:\Users\laSch\MIT Dropbox\Raman Lab\Laura Schwendeman\NMJ Paper Figure Resources\Fig 2\";
+filename = "SAM Image1.png";
+
+
+SAMGrooves = GrooveImage(filefolder, filename, pixelSize, .95, 40, 10, -10, 300, 10);
+
+SAMGrooves.plotResults();
+
+%% 
+figure;
+SAMGrooves.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+
+%% for making the comparison plots over days
+clear; close all;
+load("NMJGrooveAnalysis9_25_25.mat");
+
+figure; 
+Data{1}.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+title("24hrs");
+
+figure; 
+Data{4}.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+title("1 Week");
+
+figure; 
+Data{5}.plotSummaryGroove(); 
+pbaspect([2 1 1])
+improvePlot();
+title("0hrs");
+
+%% make an example of the peaks and valleys plot
+clear; close all;
+load("NMJGrooveAnalysis9_25_25.mat");
+
+
+figure; 
+Data{5}.plotPeaksNValleys(20:160)
+pbaspect([3 1 1])
+improvePlot();
+
+
+%% count the number of grooves from ea
+
+clear; close all;
+load("NMJGrooveAnalysis9_25_25.mat");
+dayLabel = {"D1", "D1", "D2", "D6", "D0"};
+
+
+for i = 1:length(Data)
+    disp(dayLabel{i} + num2str(size(Data{i}.Grooves)));
+
+end
+
+
