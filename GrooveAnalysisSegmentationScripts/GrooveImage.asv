@@ -79,8 +79,13 @@ classdef GrooveImage
                 boundary = bwboundaries(imBin);
                 
                 
-                %get rid of the edges
-                B = boundary{1};
+                %get rid of the edges (end get the larger object if
+                %possible?
+                try
+                 B = boundary{2};
+                catch
+                    B = boundary{1};
+                end
                 
                 deleteLocs = B(:,1) == 1 | B(:, 2) == 1;
                 
@@ -130,18 +135,18 @@ classdef GrooveImage
                 B_section = B(x1:x2, :);
             
                 %floor the b section with the min value
-                B_section(:,2) = B_section(:,1) - min(B_section(:,1), [], "all");
+                B_section(:,1) = B_section(:,1) - min(B_section(:,1), [], "all");
             
                 %get rid of duplicate x values
-                [~,uniquelocs] = unique(B_section(:,1));
+                [~,uniquelocs] = unique(B_section(:,2));
                 B_section = B_section(uniquelocs, :);
             
                 %interpolate the values for averaging
                 x_vals = (0:(interpPtAmt-1))*this.pixelSize;
-                xq = linspace(B_section(1,1), B_section(end,1),interpPtAmt);
-                y_vals = interp1(B_section(:,1), B_section(:,2), xq, "linear");
+                xq = linspace(B_section(1,2), B_section(end,2),interpPtAmt);
+                y_vals = interp1(B_section(:,2), B_section(:,1), xq, "linear");
             
-                Grooves(:,1, i) = xq-B_section(1,1); 
+                Grooves(:,1, i) = xq-B_section(1,2); 
                 Grooves(:,2,i) = y_vals;  
 
             end
@@ -240,28 +245,40 @@ classdef GrooveImage
             
             
             %add nominal dimensions line
-            r=12.5; %um
-            dtheta = .01; 
-            x1 = r*cos(-pi/2:dtheta:0); 
-            y1 = r*sin(-pi/2:dtheta:0)+r; 
+            % Create a square wave with min=0, max=25, and square width of 25
+            squareWaveHeight = 25;
+            squareWaveWidth = 25;
+            r = 12.5; % um - keeping for consistency with alignment
             
-            x2 = r*cos(pi:-dtheta:0) +2*r;
-            y2 = r*sin(pi:-dtheta:0)+r;
+            % Get signal length from AverageGroove
+            sig2 = AverageGroove(:, 2);
+            numPoints = size(sig2, 1);
             
-            x3 = r*cos(pi:dtheta:3/2*pi)+4*r;
-            y3 = r*sin(pi:dtheta:3/2*pi)+r;
-
-            %slide over the characteristic curve for reference
-            sig2 = AverageGroove(:,2); 
-            sig1 = interp1([x1 x2 x3]+5, [y1 y2 y3],linspace(0, x3(end), size(sig2,1)), "linear");
-            [sig1y_adjusted, sig2_adjusted, ~] = alignsignals(sig1, sig2', "Method","xcorr");
-            sig1x_adjusted = (1:length(sig1y_adjusted)).*r.*4./size(sig2,1);
+            % Create x-axis spanning the same range as original (0 to 4*r)
+            xRange = linspace(0, 4*r, numPoints);
             
+            % Generate square wave: alternates between 25 and 0 with width of 25 for each
+            sig1 = zeros(1, numPoints);
+            for i = 1:numPoints
+                cyclePosition = mod(xRange(i), 2*squareWaveWidth);
+                if cyclePosition < squareWaveWidth
+                    sig1(i) = squareWaveHeight;
+                else
+                    sig1(i) = 0;
+                end
+            end
             
+            % Align signals using the same method as before
+            [sig1y_adjusted, sig2_adjusted, ~] = alignsignals(sig1, sig2', "Method", "xcorr");
+            sig1x_adjusted = (1:length(sig1y_adjusted)) .* r .* 4 ./ size(sig2, 1);
+            
+            % Plot the square wave
             plot(sig1x_adjusted, sig1y_adjusted, '-y', 'LineWidth', 2);
-
-            patch([AverageGroove(:,1); flip(AverageGroove(:,1))], [minGroove;flip(maxGroove)], [1 1 1]*.8,'FaceAlpha', 0.5, 'EdgeColor', 'none')
             
+            % Plot the patch (uncertainty band)
+            patch([AverageGroove(:,1); flip(AverageGroove(:,1))], ...
+                  [minGroove; flip(maxGroove)], ...
+                  [1 1 1]*0.8, 'FaceAlpha', 0.5, 'EdgeColor', 'none')
             legend('Average Groove', 'Maximum value', 'Minimum Value', 'Nominal Dimension');
 
 
@@ -286,11 +303,19 @@ classdef GrooveImage
 
         end
 
+        function [largestBoundary] = findLargestBoundary(B)
+            
+            largestBoundary = {};
+            for i = 1:size(B)
+                if size(B{i},1) > size(largestBoundary,1)
+                    largestBoundary = B{i}
+            end
+    end
 
     end
 
     
-
+    
 
 
 
