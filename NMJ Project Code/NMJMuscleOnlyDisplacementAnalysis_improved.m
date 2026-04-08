@@ -213,7 +213,7 @@ end
 xlabel("Cell Type");
 ylabel("MADMax Displacement (um)");
 
-%% save data to an excel sheet
+%% save data to an excel sheet to process in .PRISM
 
 makeExcelSheet(DataStructs, "MuscleData2_22_2026.xlsx")
 
@@ -314,8 +314,7 @@ end
 
 end
 
-%that moment when I really should have made a class object for this, 
-%but this gets the time to peak and relaxation time too
+%this gets the time to peak and relaxation time too
 function [updatedData] = getMaxDisp(datastruct)
 
     for i = 1:length(datastruct)

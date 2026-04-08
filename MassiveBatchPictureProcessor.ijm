@@ -98,8 +98,8 @@ function processFile(input, output, file) {
 		
 		print(projected[0]); 
 		
-		run("Merge Channels...", "c1=["+projected[0]+"]" + " c4=["+projected[1]+"]"); // + " c4=["+projected[2] + "]");
-		
+		//run("Merge Channels...", "c1=["+projected[0]+"]" + " c4=["+projected[1]+"]"); // + " c4=["+projected[2] + "]");
+		run("Merge Channels...", " c4=["+projected[1]+"]");
 		run("Make Composite");
 		
 		
